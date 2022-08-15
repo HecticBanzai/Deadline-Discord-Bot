@@ -16,7 +16,7 @@ import os
 
 load_dotenv()
 
-bot = discord.Bot(debug_guilds=[1005145130233245857])
+bot = discord.Bot(debug_guilds=[os.getenv("GUILD")])
 
 event_list = {}
 
