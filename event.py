@@ -71,7 +71,7 @@ class event:
     return embed
 
   def view_for_opt(self):
-    view = View()
+    view = View(timeout=None)
 
     opt_in_button = Button(label="Opt in for reminders", style=discord.ButtonStyle.success)
     opt_out_button = Button(label="Opt out of reminders", style=discord.ButtonStyle.danger)

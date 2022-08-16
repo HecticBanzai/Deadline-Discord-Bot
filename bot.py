@@ -16,7 +16,7 @@ import math
 
 load_dotenv()
 
-bot = discord.Bot(debug_guilds=[os.getenv("GUILD")])
+bot = discord.Bot(debug_guilds=[os.getenv("TEST_GUILD")])
 
 event_list = {}
 
@@ -78,7 +78,7 @@ def schedule_next_reminder(event):
             CronTrigger(year=next_reminder_date.year, month=next_reminder_date.month, day=next_reminder_date.day, hour=event.hour, minute=event.minute),
             args=[event], 
             id=event.job_id+"-remind",
-            name=event.job_id+"-remind")
+            name=event.event_name+"-remind")
 
     # If the event is at exactly 1 day away
     elif difference.days == 1:
@@ -89,7 +89,7 @@ def schedule_next_reminder(event):
             CronTrigger(year=next_reminder_date.year, month=next_reminder_date.month, day=next_reminder_date.day, hour=next_reminder_date.hour, minute=next_reminder_date.minute),
             args=[event], 
             id=event.job_id+"-remind",
-            name=event.job_id+"-remind")
+            name=event.event_name+"-remind")
 
     # If it is the day of the event
     else:
@@ -100,7 +100,7 @@ def schedule_next_reminder(event):
             CronTrigger(year=next_reminder_date.year, month=next_reminder_date.month, day=next_reminder_date.day, hour=next_reminder_date.hour, minute=next_reminder_date.minute),
             args=[event], 
             id=event.job_id+"-remind",
-            name=event.job_id+"-remind")
+            name=event.event_name+"-remind")
 
     scheduler.print_jobs()
 
@@ -118,7 +118,7 @@ async def notify(event):
         delete_role, 
         CronTrigger(year=event.year, month=helpers.months_table[event.month], day=event.day, hour=event.hour, minute=event.minute+5), 
         args=[event], 
-        name=event.job_id+"-delete")
+        name=event.event_name+"-delete")
     scheduler.remove_job(event.job_id+"-remind")
 
 async def delete_role(event):
@@ -232,7 +232,7 @@ async def update(
             ),
             args=[new_event],
             id=new_event.job_id,
-            name=new_event.job_id)
+            name=new_event.event_name)
         schedule_next_reminder(new_event)
 
         await event_name.edit(name=new_event.event_name)
