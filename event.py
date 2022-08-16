@@ -75,9 +75,11 @@ class event:
 
     opt_in_button = Button(label="Opt in for reminders", style=discord.ButtonStyle.success)
     opt_out_button = Button(label="Opt out of reminders", style=discord.ButtonStyle.danger)
+    get_attendance_button = Button(label="Check attendance", style=discord.ButtonStyle.primary)
     
     view.add_item(opt_in_button)
     view.add_item(opt_out_button)
+    view.add_item(get_attendance_button)
 
     async def opt_in(interaction):
         member = interaction.user
@@ -102,9 +104,27 @@ class event:
             await interaction.response.send_message(f"You will no longer recieve reminders for **{self.event_name}**!", ephemeral=True)
         else:
           await interaction.response.send_message(f"Cannot opt you out of notifications for **{self.event_name}**! Maybe the event was updated?", ephemeral=True)
+
+    async def get_attendance(interaction):
+      if len(self.users_opted_in) == 0:
+        embed = discord.Embed(title=f"{self.event_name}", color=0xad6fa)
+        embed.add_field(name="Attendance List", value="No one is attending!", inline=False)
+
+        await interaction.response.send_message(embed=embed)
+      else:
+        memberlist = []
+
+        for member in self.users_opted_in:
+          memberlist.append(f"{member.display_name}#{member.discriminator}")
+
+        embed = discord.Embed(title=f"{self.event_name}", color=0xad6fa)
+        embed.add_field(name="Attendance List", value='\n'.join(memberlist), inline=False)
+
+        await interaction.response.send_message(embed=embed)
         
     opt_in_button.callback = opt_in
     opt_out_button.callback = opt_out
+    get_attendance_button.callback = get_attendance
 
     return view
 
