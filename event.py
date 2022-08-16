@@ -20,7 +20,7 @@ class event:
   def __str__(self):
     return f"Event: {self.event_name}, {self.month}/{self.day}/{self.year}, {self.hour}:{self.minute}"
 
-  def notify_create(self):
+  def embed_for_create(self):
     embed = discord.Embed(title="Event Created!", color=0xad6fa)
     embed.add_field(name="Event Name", value=self.event_name, inline=False)
     embed.add_field(name="Date", value=f"{helpers.create_date_string(self.month, self.day, self.year)}", inline=True)
@@ -31,7 +31,7 @@ class event:
 
     return embed
 
-  def notify_remind(self):
+  def embed_for_remind(self):
     embed = discord.Embed(title="Event Reminder!", color=0xad6fa)
     embed.add_field(name="Event Name", value=self.event_name, inline=False)
     embed.add_field(name="Date", value=f"{helpers.create_date_string(self.month, self.day, self.year)}", inline=True)
@@ -42,7 +42,7 @@ class event:
 
     return embed
 
-  def notify_start(self):
+  def embed_for_start(self):
     embed = discord.Embed(title="Event Starting!", color=0xad6fa)
     embed.add_field(name="Event Name", value=self.event_name, inline=False)
     embed.add_field(name="Date", value=f"{helpers.create_date_string(self.month, self.day, self.year)}", inline=True)
@@ -53,7 +53,7 @@ class event:
 
     return embed
 
-  def notify_update(self):
+  def embed_for_update(self):
     embed = discord.Embed(title="Event Updated!", color=0xad6fa)
     embed.add_field(name="Event Name", value=self.event_name, inline=False)
     embed.add_field(name="Date", value=f"{helpers.create_date_string(self.month, self.day, self.year)}", inline=True)
@@ -64,13 +64,13 @@ class event:
 
     return embed
 
-  def notify_delete(self):
+  def embed_for_delete(self):
     embed = discord.Embed(title="Event Deleted!", color=0xad6fa)
     embed.add_field(name="Event Name", value=self.event_name, inline=False)
 
     return embed
 
-  def view_for_opt(self):
+  def view_with_buttons(self):
     view = View(timeout=None)
 
     opt_in_button = Button(label="Opt in for reminders", style=discord.ButtonStyle.success)

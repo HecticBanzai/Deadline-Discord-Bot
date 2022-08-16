@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from helpers import *
+import helpers
 from event import *
 
 from dotenv import load_dotenv
@@ -16,7 +16,7 @@ import math
 
 load_dotenv()
 
-bot = discord.Bot(debug_guilds=[os.getenv("TEST_GUILD")])
+bot = discord.Bot(debug_guilds=[os.getenv("TEST_GUILD"), os.getenv("GUILD")])
 
 event_list = {}
 
@@ -26,48 +26,47 @@ scheduler.start()
 def schedule_next_reminder(event):
     now = datetime.now()
 
-    event_deadline = datetime(event.year, months_table[event.month], event.day, event.hour, event.minute, now.second, now.microsecond)
+    event_deadline = datetime(event.year, helpers.months_table[event.month], event.day, event.hour, event.minute, now.second, now.microsecond)
 
-    difference = event_deadline - now
+    time_difference = event_deadline - now
 
-    difference_minutes = (difference.seconds % 3600) / 60
-    difference_hours = math.floor(difference.seconds / 3600)
+    difference_in_minutes = (time_difference.seconds % 3600) / 60
+    difference_in_hours = math.floor(time_difference.seconds / 3600)
+    difference_in_days = time_difference.days
 
-    print(f"hours {difference_hours}")
-    print(f"minutes {difference_minutes}")
-    print(event_deadline - now)
+    # print(f"hours {difference_in_hours}")
+    # print(f"minutes {difference_in_minutes}")
+    # print(event_deadline - now)
   
     # If the event is at least 1 day away
-    if difference.days > 1:
-        difference_days = difference.days
+    if difference_in_days > 1:
 
         # If the event is at least 42 days away
-        if difference_days > 42:
-            padded_difference = difference_days - 42
-            print(f"padded difference {padded_difference}" )
+        if difference_in_days > 42:
+            padded_difference_in_days = difference_in_days - 42
+
+            # print(f"padded difference {padded_difference_in_days}" )
 
             # Check if the amount of days away is a multiple of 28
-            if padded_difference % 28 != 0:
-                next_reminder_date = now + timedelta(days = padded_difference % 28)
+            if padded_difference_in_days % 28 != 0:
+                next_reminder_date = now + timedelta(days=padded_difference_in_days % 28)
             else:
-                next_reminder_date = now + timedelta(days = 28)
+                next_reminder_date = now + timedelta(days=28)
         
         # If the event is at least 42 days away
         else:
             # Check if the amount of days away is a multiple of 14
-            if difference_days % 14 != 0:
-                next_reminder_date = now + timedelta(days = difference_days % 14)
+            if difference_in_days % 14 != 0:
+                next_reminder_date = now + timedelta(days=difference_in_days % 14)
             else:
-                next_reminder_date = now + timedelta(days = 14)
+                next_reminder_date = now + timedelta(days=14)
 
-            print(f"next reminder date {next_reminder_date}")
+            # print(f"next reminder date {next_reminder_date}")
 
             # Check if the last reminder is on the day of the event
             same_date = next_reminder_date.year == event_deadline.year and next_reminder_date.month == event_deadline.month and next_reminder_date.day == event_deadline.day
             if same_date:
-                print("same date")
-                next_reminder_date -= timedelta(days = 1)
-                pass
+                next_reminder_date -= timedelta(days=1)
 
         # if (now + timedelta(hours = difference_hours, minutes = difference_minutes)) > now and (now + timedelta(hours = difference_hours, minutes = difference_minutes)) < event_deadline:
         #     print("goes into next day")
@@ -81,7 +80,7 @@ def schedule_next_reminder(event):
             name=event.event_name+"-remind")
 
     # If the event is at exactly 1 day away
-    elif difference.days == 1:
+    elif difference_in_days == 1:
         next_reminder_date = event_deadline - timedelta(hours = 1)
 
         scheduler.add_job(
@@ -102,17 +101,17 @@ def schedule_next_reminder(event):
             id=event.job_id+"-remind",
             name=event.event_name+"-remind")
 
-    scheduler.print_jobs()
+    # scheduler.print_jobs()
 
-async def notify(event):
+async def notify_event_start(event):
     await bot.wait_until_ready()
-    c = bot.get_channel(event.channel.id)
+    channel = bot.get_channel(event.channel.id)
 
-    role = get(c.guild.roles, name=event.event_name)
+    role = get(channel.guild.roles, name=event.event_name)
 
-    embed = event.notify_start()
+    embed = event.embed_for_create()
 
-    await c.send(f"{role.mention}", embed=embed)
+    await channel.send(f"{role.mention}", embed=embed)
 
     scheduler.add_job(
         delete_role, 
@@ -127,16 +126,20 @@ async def delete_role(event):
 
 async def remind(event):
     await bot.wait_until_ready()
-    c = bot.get_channel(event.channel.id)
+    channel = bot.get_channel(event.channel.id)
 
-    role = get(c.guild.roles, name=event.event_name)
+    role = get(channel.guild.roles, name=event.event_name)
 
-    embed = event.notify_remind()
-    view = event.view_for_opt()
+    embed = event.embed_for_remind()
+    view = event.view_with_buttons()
 
-    await c.send(f"{role.mention}", embed=embed, view=view)
+    await channel.send(f"{role.mention}", embed=embed, view=view)
     
     schedule_next_reminder(event)
+
+@bot.event
+async def on_ready():
+  print("Deadline Bot is up and running!")
 
 @bot.slash_command()
 @option("event_name", description="Enter event name")
@@ -162,10 +165,15 @@ async def deadline(
         new_event = event(event_name, month, day, year, hour, minute, channel, description, event_name, [])
         event_list[event_name] = new_event
 
-        embed = new_event.notify_create()
-        view = new_event.view_for_opt()
+        embed = new_event.embed_for_create()
+        view = new_event.view_with_buttons()
         
-        scheduler.add_job(notify, CronTrigger(year=year, month=helpers.months_table[month], day=day, hour=hour, minute=minute), args=[new_event], id=new_event.job_id, name=new_event.job_id)
+        scheduler.add_job(
+            notify_event_start, 
+            CronTrigger(year=year, month=helpers.months_table[month], day=day, hour=hour, minute=minute), 
+            args=[new_event], 
+            id=new_event.job_id, 
+            name=new_event.job_id)
 
         schedule_next_reminder(new_event)
 
@@ -206,7 +214,7 @@ async def update(
     else:
         current_event = event_list[event_name.name]
 
-        new_event = current_event.update_event(
+        updated_event = current_event.update_event(
             new_event_name=new_event_name or current_event.event_name,
             month=month or current_event.month,
             day=day or current_event.day,
@@ -220,30 +228,30 @@ async def update(
 
         event_list.pop(event_name.name)
 
-        event_list[new_event.event_name] = new_event
+        event_list[updated_event.event_name] = updated_event
 
-        scheduler.remove_job(new_event.job_id)
-        scheduler.remove_job(new_event.job_id+"-remind")
+        scheduler.remove_job(updated_event.job_id)
+        scheduler.remove_job(updated_event.job_id+"-remind")
         scheduler.add_job(
-            notify, 
+            notify_event_start, 
             CronTrigger(
-                year=new_event.year,  
-                month=helpers.months_table[new_event.month], 
-                day=new_event.day, 
-                hour=new_event.hour, 
-                minute=new_event.minute
+                year=updated_event.year,  
+                month=helpers.months_table[updated_event.month], 
+                day=updated_event.day, 
+                hour=updated_event.hour, 
+                minute=updated_event.minute
             ),
-            args=[new_event],
-            id=new_event.job_id,
-            name=new_event.event_name)
-        schedule_next_reminder(new_event)
+            args=[updated_event],
+            id=updated_event.job_id,
+            name=updated_event.event_name)
+        schedule_next_reminder(updated_event)
 
-        await event_name.edit(name=new_event.event_name)
+        await event_name.edit(name=updated_event.event_name)
 
-        embed = new_event.notify_update()
-        view = new_event.view_for_opt()
+        embed = updated_event.embed_for_update()
+        view = updated_event.view_with_buttons()
 
-        role = get(ctx.guild.roles, name=new_event.event_name)
+        role = get(ctx.guild.roles, name=updated_event.event_name)
 
         await ctx.send(f"{role.mention}")
         await ctx.respond(embed=embed, view=view)
@@ -261,10 +269,8 @@ async def delete(ctx: discord.ApplicationContext, event_name: discord.Role):
 
         await event_name.delete()
 
-        embed = event_to_delete.notify_delete()
+        embed = event_to_delete.embed_for_delete()
 
         await ctx.respond(embed=embed)
-
-        scheduler.print_jobs()
 
 bot.run(os.getenv("TOKEN"))

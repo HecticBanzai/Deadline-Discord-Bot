@@ -86,7 +86,6 @@ Room for improvement:
 To do:
 - Add command to opt in or out of reminders.
 - Save job list whenever the bot is shut down or restarted
-- Add get members command to see who will recieve reminders
 
 ## Acknowledgements
 - Many thanks to [this tutorial](https://www.youtube.com/watch?v=EreE-0hQibM&ab_channel=JonahLawrence%E2%80%A2DevProTips) for helping me set up the bot on Heroku.
