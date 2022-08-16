@@ -83,19 +83,25 @@ class event:
         member = interaction.user
         role = get(interaction.guild.roles, name=self.event_name)
 
-        if member not in self.users_opted_in:
-          self.users_opted_in.append(member)
-          await member.add_roles(role)
-          await interaction.response.send_message(f"You will now recieve reminders for {self.event_name}!", ephemeral=True)
+        if role != None:
+          if member not in self.users_opted_in:
+            self.users_opted_in.append(member)
+            await member.add_roles(role)
+            await interaction.response.send_message(f"You will now recieve reminders for **{self.event_name}**!", ephemeral=True)
+        else:
+          await interaction.response.send_message(f"Cannot send you notifications for **{self.event_name}**! Maybe the event was updated?", ephemeral=True)
 
     async def opt_out(interaction):
         member = interaction.user
         role = get(interaction.guild.roles, name=self.event_name)
 
-        if member in self.users_opted_in:
-          self.users_opted_in.remove(member)
-          await member.remove_roles(role)
-          await interaction.response.send_message(f"You will no longer recieve reminders for {self.event_name}!", ephemeral=True)
+        if role != None:
+          if member in self.users_opted_in:
+            self.users_opted_in.remove(member)
+            await member.remove_roles(role)
+            await interaction.response.send_message(f"You will no longer recieve reminders for **{self.event_name}**!", ephemeral=True)
+        else:
+          await interaction.response.send_message(f"Cannot opt you out of notifications for **{self.event_name}**! Maybe the event was updated?", ephemeral=True)
         
     opt_in_button.callback = opt_in
     opt_out_button.callback = opt_out

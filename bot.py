@@ -158,18 +158,21 @@ async def deadline(
     channel: discord.TextChannel,
     description: str
 ):
-    new_event = event(event_name, month, day, year, hour, minute, channel, description, event_name, [])
-    event_list[event_name] = new_event
+    if not scheduler.get_job(event_name):
+        new_event = event(event_name, month, day, year, hour, minute, channel, description, event_name, [])
+        event_list[event_name] = new_event
 
-    embed = new_event.notify_create()
-    view = new_event.view_for_opt()
-    
-    scheduler.add_job(notify, CronTrigger(year=year, month=helpers.months_table[month], day=day, hour=hour, minute=minute), args=[new_event], id=new_event.job_id, name=new_event.job_id)
+        embed = new_event.notify_create()
+        view = new_event.view_for_opt()
+        
+        scheduler.add_job(notify, CronTrigger(year=year, month=helpers.months_table[month], day=day, hour=hour, minute=minute), args=[new_event], id=new_event.job_id, name=new_event.job_id)
 
-    schedule_next_reminder(new_event)
+        schedule_next_reminder(new_event)
 
-    await ctx.guild.create_role(name=event_name)
-    await ctx.respond(embed=embed, view=view)
+        await ctx.guild.create_role(name=event_name)
+        await ctx.respond(embed=embed, view=view)
+    else:
+        ctx.respond("Job has been created before! Choose another name!", ephemeral=True)
 
 @bot.slash_command()
 @option("event_name", description="Select event to update")
