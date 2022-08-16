@@ -59,7 +59,7 @@
 
 ![Example deadline](./screenshots/example%20deadline.png)
 
-### Update
+### Update Event
 
 `/update {event_name} {*new_event_name} {*month} {*day} {*year} {*hour} {*minute} {*channel} {*description}`
 
@@ -67,6 +67,8 @@
 - ***new_event_name***: New name for the of event you want to change. This will also change the role name.
 
 ![Example deadline](./screenshots/example%20update.png)
+
+### Delete Event
 
 `/delete {event_name}`
 
@@ -83,8 +85,8 @@ Room for improvement:
 
 To do:
 - Add command to opt in or out of reminders.
-- Fix error that comes up when trying to ping role of an event that had its name updated.
-- Stop some jobs from being paused upon being added.
+- Save job list whenever the bot is shut down or restarted
+- Add get members command to see who will recieve reminders
 
 ## Acknowledgements
 - Many thanks to [this tutorial](https://www.youtube.com/watch?v=EreE-0hQibM&ab_channel=JonahLawrence%E2%80%A2DevProTips) for helping me set up the bot on Heroku.
