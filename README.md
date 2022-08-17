@@ -21,7 +21,7 @@
 
 ## Technologies Used
 - Python - version 3.10.6
-- Py-cord - version 2.0.0
+- Py-cord - version 2.0.1
 - APScheduler - version 3.9.1
 - Python-dotenv - version 0.20.0
 - Heroku - Version 20
@@ -31,11 +31,13 @@
 - Update deadlines for any change of plans
 - Delete deadlines
 - Opt in or out of reminders for deadlines
-
+- Check attendance list to see who is receiving reminders
 
 ## Screenshots
 ![Example screenshot](./screenshots/create-deadline.png)
-![Example screenshot2](./screenshots/create-deadline2.png)
+![Example screenshot2](./screenshots/update-deadline.png)
+![Example screenshot3](./screenshots/check%20attendance.png)
+![Example screenshot3](./screenshots/delete%20deadline.png)
 
 ## Setup
 - [Requirements](requirements.txt)
@@ -76,6 +78,29 @@
 
 ![Example deadline](./screenshots/example%20delete.png)
 
+### Opt out for reminders
+
+`/opt-in {event_name}`
+
+- ***event_name***: Name of the event you will get reminders for. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
+
+![Example deadline](./screenshots/example%20opt%20in.png)
+
+### Opt out of reminders
+
+`/opt-out {event_name}`
+
+- ***event_name***: Name of the event you want to no longer receive notifications for. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
+
+![Example deadline](./screenshots/example%20opt%20out.png)
+
+### Buttons
+- ***Opt in for reminders***: Does the exact same as the opt-in command.
+- ***Opt out of reminders***: Does the exact same as the opt-out command.
+- ***Check attendance***: Shows a list of people who are currently receiving reminders.
+
+![Example deadline](./screenshots/example%20buttons.png)
+
 ## Project Status
 Project is: _in progress_ 
 
@@ -84,8 +109,7 @@ Room for improvement:
 - Add more flexible reminder scheduling
 
 To do:
-- Add command to opt in or out of reminders.
-- Save job list whenever the bot is shut down or restarted
+- Save job list whenever the bot is shut down or restarted via a database
 
 ## Acknowledgements
 - Many thanks to [this tutorial](https://www.youtube.com/watch?v=EreE-0hQibM&ab_channel=JonahLawrence%E2%80%A2DevProTips) for helping me set up the bot on Heroku.

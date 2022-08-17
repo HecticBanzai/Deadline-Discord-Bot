@@ -18,10 +18,10 @@ load_dotenv()
 
 bot = discord.Bot(debug_guilds=[os.getenv("TEST_GUILD"), os.getenv("GUILD")])
 
-event_list = {}
-
 scheduler = AsyncIOScheduler()
 scheduler.start()
+
+event_list = {}
 
 def schedule_next_reminder(event):
     now = datetime.now()
@@ -37,7 +37,7 @@ def schedule_next_reminder(event):
     # print(f"hours {difference_in_hours}")
     # print(f"minutes {difference_in_minutes}")
     # print(event_deadline - now)
-  
+
     # If the event is at least 1 day away
     if difference_in_days > 1:
 
@@ -101,7 +101,7 @@ def schedule_next_reminder(event):
             id=event.job_id+"-remind",
             name=event.event_name+"-remind")
 
-    # scheduler.print_jobs()
+    scheduler.print_jobs()
 
 async def notify_event_start(event):
     await bot.wait_until_ready()
@@ -140,8 +140,9 @@ async def remind(event):
 @bot.event
 async def on_ready():
   print("Deadline Bot is up and running!")
+  print("-------------------------------")
 
-@bot.slash_command()
+@bot.slash_command(description="Create an event deadline")
 @option("event_name", description="Enter event name")
 @option("month", description="Enter month of event", choices=["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
 @option("day", description="Enter day of event", min_value=1, max_value=31)
@@ -182,7 +183,7 @@ async def deadline(
     else:
         ctx.respond("Job has been created before! Choose another name!", ephemeral=True)
 
-@bot.slash_command()
+@bot.slash_command(description="Update selected event deadline")
 @option("event_name", description="Select event to update")
 @option("new_event_name", description="Enter new event name", required=False)
 @option(
@@ -256,7 +257,7 @@ async def update(
         await ctx.send(f"{role.mention}")
         await ctx.respond(embed=embed, view=view)
 
-@bot.slash_command()
+@bot.slash_command(description="Delete selected event deadline")
 @option("event_name", description="Select which event to delete")
 async def delete(ctx: discord.ApplicationContext, event_name: discord.Role):
     if event_name.name not in event_list:
@@ -272,5 +273,34 @@ async def delete(ctx: discord.ApplicationContext, event_name: discord.Role):
         embed = event_to_delete.embed_for_delete()
 
         await ctx.respond(embed=embed)
+
+@bot.slash_command(name="opt-in", description="Opt out of reminders for an event deadline")
+@option("event_name", description="Select event to get reminders for")
+async def opt_in(ctx: discord.ApplicationContext, event_name: discord.Role):
+    member = ctx.user
+
+    event = event_list[event_name.name]
+    
+    if member not in event.users_opted_in:
+        event.users_opted_in.append(member)
+        await member.add_roles(event_name)
+        await ctx.respond(f"You will now recieve reminders for **{event.event_name}**!", ephemeral=True)
+    else:
+        await ctx.respond(f"Cannot send you notifications for **{event.event_name}**! Maybe the event was updated?", ephemeral=True)
+
+
+@bot.slash_command(name="opt-out", description="Opt out of reminders for an event deadline")
+@option("event_name", description="Select event to get reminders for")
+async def opt_out(ctx: discord.ApplicationContext, event_name: discord.Role):
+    member = ctx.user
+
+    event = event_list[event_name.name]
+    
+    if member in event.users_opted_in:
+        event.users_opted_in.remove(member)
+        await member.remove_roles(event_name)
+        await ctx.respond(f"You will no longer recieve reminders for **{event.event_name}**!", ephemeral=True)
+    else:
+        await ctx.respond(f"Cannot opt you out of notifications for **{event.event_name}**! Maybe the event was updated?", ephemeral=True)
 
 bot.run(os.getenv("TOKEN"))
