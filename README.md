@@ -13,7 +13,6 @@
 * [Contact](#contact)
 <!-- * [License](#license) -->
 
-
 ## General Information
 - The Deadline Discord Bot is designed to remind people of upcoming events via roles and pings.
 - Because of our busy high school lives, sometimes we get sidetracked from the events we plan. With this Discord bot, we will not have to worry about remembering what's coming up.
@@ -41,10 +40,11 @@
 
 ## Setup
 - [Requirements](requirements.txt)
+- [Add bot to your server](https://discord.com/api/oauth2/authorize?client_id=1005144008126894200&permissions=8&scope=bot%20applications.commands)
 
 ## Usage
 
-- "*" stands for an optional input
+- " * " stands for an optional input
 
 ### Create Deadline
 
@@ -117,7 +117,6 @@ To do:
 
 ## Contact
 Created by [@HecticBanzai](https://github.com/HecticBanzai) - feel free to contact me!
-
 
 <!-- Optional -->
 <!-- ## License -->
