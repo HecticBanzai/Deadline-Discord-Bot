@@ -109,7 +109,7 @@ Room for improvement:
 - Add more flexible reminder scheduling
 
 To do:
-- Save job list whenever the bot is shut down or restarted via a database
+- Have the bot read the database information upon start up.
 
 ## Acknowledgements
 - Many thanks to [this tutorial](https://www.youtube.com/watch?v=EreE-0hQibM&ab_channel=JonahLawrence%E2%80%A2DevProTips) for helping me set up the bot on Heroku.

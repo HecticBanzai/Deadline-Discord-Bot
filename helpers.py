@@ -32,7 +32,7 @@ def create_time_string(hour, minute):
 def create_date_string(month, day, year):
     return f"{month} {day}, {year}"
 
-months_table = {
+months_table_to_int = {
     "January": 1,
     "Feburary": 2,
     "March": 3, 
@@ -45,4 +45,19 @@ months_table = {
     "October": 10, 
     "November": 11, 
     "December": 12
+}
+
+months_table_to_str = {
+    1: "January",
+    2: "Feburary",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December"
 }

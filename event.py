@@ -5,14 +5,14 @@ from discord.utils import get
 import helpers
 
 class event:
-  def __init__(self, event_name, month, day, year, hour, minute, channel, description, job_id, users_opted_in):
+  def __init__(self, event_name: str, month: str, day: int, year: int, hour: int, minute: int, channel_id: int, description: str, job_id: str, users_opted_in: list):
     self.event_name = event_name
     self.month = month
     self.day = day
     self.year = year
     self.hour = hour
     self.minute = minute
-    self.channel = channel
+    self.channel_id = channel_id
     self.description = description
     self.job_id = job_id
     self.users_opted_in = [] or users_opted_in
@@ -86,8 +86,8 @@ class event:
         role = get(interaction.guild.roles, name=self.event_name)
 
         if role != None:
-          if member not in self.users_opted_in:
-            self.users_opted_in.append(member)
+          if member.id not in self.users_opted_in:
+            self.users_opted_in.append(member.id)
             await member.add_roles(role)
             await interaction.response.send_message(f"You will now recieve reminders for **{self.event_name}**!", ephemeral=True)
         else:
@@ -98,8 +98,8 @@ class event:
         role = get(interaction.guild.roles, name=self.event_name)
 
         if role != None:
-          if member in self.users_opted_in:
-            self.users_opted_in.remove(member)
+          if member.id in self.users_opted_in:
+            self.users_opted_in.remove(member.id)
             await member.remove_roles(role)
             await interaction.response.send_message(f"You will no longer recieve reminders for **{self.event_name}**!", ephemeral=True)
         else:
@@ -114,7 +114,9 @@ class event:
       else:
         memberlist = []
 
-        for member in self.users_opted_in:
+        for member_id in self.users_opted_in:
+          member = interaction.guild.get_member(member_id)
+
           memberlist.append(f"{member.display_name}#{member.discriminator}")
 
         embed = discord.Embed(title=f"{self.event_name}", color=0xad6fa)
@@ -128,5 +130,5 @@ class event:
 
     return view
 
-  def update_event(self, new_event_name, month, day, year, hour, minute, channel, description, job_id):
-    return event(new_event_name, month, day, year, hour, minute, channel, description, job_id, self.users_opted_in)
+  def update_event(self, new_event_name, month, day, year, hour, minute, channel_id, description, job_id):
+    return event(new_event_name, month, day, year, hour, minute, channel_id, description, job_id, self.users_opted_in)
