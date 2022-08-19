@@ -18,7 +18,7 @@ class event:
     self.description = description
     self.job_id = job_id
     self.users_opted_in = [] or users_opted_in
-
+  
   def __str__(self):
     return f"Event: {self.event_name}, {self.month}/{self.day}/{self.year}, {self.hour}:{self.minute}"
 

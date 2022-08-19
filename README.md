@@ -94,6 +94,14 @@
 
 ![Example deadline](./screenshots/example%20opt%20out.png)
 
+### Get attendance
+
+`/get-attendance {event_name}`
+
+- ***event_name***: Name of the event you want to see attendance of. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
+
+![Example deadline](./screenshots/example%20get%20attendance.png)
+
 ### Buttons
 - ***Opt in for reminders***: Does the exact same as the opt-in command.
 - ***Opt out of reminders***: Does the exact same as the opt-out command.
@@ -109,10 +117,9 @@ Room for improvement:
 - Add more flexible reminder scheduling
 
 To do:
-- Have the bot read the database information upon start up.
+- Get list of events
 
 ## Acknowledgements
-- Many thanks to [this tutorial](https://www.youtube.com/watch?v=EreE-0hQibM&ab_channel=JonahLawrence%E2%80%A2DevProTips) for helping me set up the bot on Heroku.
 - Thanks you to the [Pycord Discord Server](https://discord.gg/ySu2u8Ff) for helping me through many roadblocks
 
 ## Contact

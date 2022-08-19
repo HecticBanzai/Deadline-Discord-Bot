@@ -13,7 +13,7 @@ from event import *
 from dotenv import load_dotenv
 import os
 
-import math
+# import math
 
 import asyncpg
 
@@ -34,8 +34,8 @@ async def schedule_next_reminder(event):
 
         time_difference = event_deadline - now
 
-        difference_in_minutes = (time_difference.seconds % 3600) / 60
-        difference_in_hours = math.floor(time_difference.seconds / 3600)
+        # difference_in_minutes = (time_difference.seconds % 3600) / 60
+        # difference_in_hours = math.floor(time_difference.seconds / 3600)
         difference_in_days = time_difference.days
 
         # print(f"hours {difference_in_hours}")
@@ -83,7 +83,6 @@ async def schedule_next_reminder(event):
                 id=event.job_id+"-remind",
                 name=event.event_name+"-remind")
             await database.add_deadline(
-
                     channel.guild.id, 
                     event.job_id+"-remind", 
                     event.event_name+"-remind",
@@ -104,7 +103,6 @@ async def schedule_next_reminder(event):
                 id=event.job_id+"-remind",
                 name=event.event_name+"-remind")
             await database.add_deadline(
-
                     channel.guild.id, 
                     event.job_id+"-remind", 
                     event.event_name+"-remind",
@@ -118,24 +116,24 @@ async def schedule_next_reminder(event):
         else:
             next_reminder_date = event_deadline - timedelta(minutes = 15)
 
-            scheduler.add_job(
-                remind, 
-                CronTrigger(year=next_reminder_date.year, month=next_reminder_date.month, day=next_reminder_date.day, hour=next_reminder_date.hour, minute=next_reminder_date.minute),
-                args=[event], 
-                id=event.job_id+"-remind",
-                name=event.event_name+"-remind")
-            await database.add_deadline(
+            if not next_reminder_date < now:
+                scheduler.add_job(
+                    remind, 
+                    CronTrigger(year=next_reminder_date.year, month=next_reminder_date.month, day=next_reminder_date.day, hour=next_reminder_date.hour, minute=next_reminder_date.minute),
+                    args=[event], 
+                    id=event.job_id+"-remind",
+                    name=event.event_name+"-remind")
+                await database.add_deadline(
+                        channel.guild.id, 
+                        event.job_id+"-remind", 
+                        event.event_name+"-remind",
+                        next_reminder_date.year,
+                        helpers.months_table_to_str[next_reminder_date.month],
+                        next_reminder_date.day,
+                        next_reminder_date.hour,
+                        next_reminder_date.minute)
 
-                    channel.guild.id, 
-                    event.job_id+"-remind", 
-                    event.event_name+"-remind",
-                    next_reminder_date.year,
-                    helpers.months_table_to_str[next_reminder_date.month],
-                    next_reminder_date.day,
-                    next_reminder_date.hour,
-                    next_reminder_date.minute)
-
-        scheduler.print_jobs()
+        # scheduler.print_jobs()
 
 async def notify_event_start(event):
     await client.wait_until_ready()
@@ -150,7 +148,7 @@ async def notify_event_start(event):
     event_list.pop(event.event_name)
 
     await database.remove_event_object(channel.guild.id, event.event_name)
-    await database.remove_deadline(channel.guild.id, event.job_id)
+    await database.remove_deadlines(channel.guild.id, event.job_id)
 
     scheduler.add_job(
         delete_role, 
@@ -159,7 +157,6 @@ async def notify_event_start(event):
         id=event.event_name+"-delete",
         name=event.event_name+"-delete")
     await database.add_deadline(
-
             channel.guild.id, 
             event.event_name+"-delete", 
             event.event_name+"-delete",
@@ -170,7 +167,7 @@ async def notify_event_start(event):
             event.minute+5)
 
     scheduler.remove_job(event.job_id+"-remind")
-    await database.remove_deadline(channel.guild.id, event.job_id+"-remind")
+    await database.remove_deadlines(channel.guild.id, event.job_id+"-remind")
 
 async def delete_role(event):
     channel = client.get_channel(event.channel_id)
@@ -188,7 +185,7 @@ async def remind(event):
 
     await channel.send(f"{role.mention}", embed=embed, view=view)
 
-    await database.remove_deadline(channel.guild.id, event.job_id+"-remind")
+    await database.remove_deadlines(channel.guild.id, event.job_id+"-remind")
     
     await schedule_next_reminder(event)
 
@@ -218,6 +215,41 @@ async def on_ready():
                 hour integer,
                 minute integer)""")
 
+        event_rows = await con.fetch(f"""SELECT * FROM events_{guild.id}""")
+        for row in event_rows:
+            event_name, month, day, year, hour, minute, channel_id, description, job_id, users_opted_in = row
+            event_list[event_name] = event(event_name, month, day, year, hour, minute, channel_id, description, job_id, users_opted_in)
+
+        job_rows = await con.fetch(f"""SELECT * FROM jobs_{guild.id}""")
+        for row in job_rows:
+            job_id, job_name, year, month, day, hour, minute = row
+
+            if job_id.endswith("-remind") and event_list[job_name.removesuffix("-remind")]:
+                scheduler.add_job(
+                    remind, 
+                    CronTrigger(year=year, month=helpers.months_table_to_int[month], day=day, hour=hour, minute=minute),
+                    args=[event_list[job_name.removesuffix("-remind")]], 
+                    id=job_id,
+                    name=job_name)
+
+            elif job_id.endswith("-delete") and event_list[job_name.removesuffix("-delete")]:
+                scheduler.add_job(
+                    delete_role, 
+                    CronTrigger(year=year, month=helpers.months_table_to_int[month], day=day, hour=hour, minute=minute), 
+                    args=[event_list[job_name.removesuffix("-delete")]], 
+                    id=job_id,
+                    name=job_name)
+
+            else:
+                scheduler.add_job(
+                    notify_event_start, 
+                    CronTrigger(year=year, month=helpers.months_table_to_int[month], day=day, hour=hour, minute=minute), 
+                    args=[event_list[job_name]], 
+                    id=job_id, 
+                    name=job_name)
+
+        scheduler.print_jobs()
+
         await con.close()
 
     print("Deadline Bot is up and running!")
@@ -243,7 +275,9 @@ async def deadline(
     channel: discord.TextChannel,
     description: str
 ):
-    if not scheduler.get_job(event_name):
+    event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
+
+    if not scheduler.get_job(event_name) and datetime.now() < event_deadline:
         new_event = event(event_name, month, day, year, hour, minute, channel.id, description, event_name, [])
         event_list[event_name] = new_event
         await database.add_event_object(ctx.guild.id, event_name, month, day, year, hour, minute, channel.id, description, event_name, [])
@@ -258,7 +292,6 @@ async def deadline(
             id=new_event.job_id, 
             name=new_event.job_id)
         await database.add_deadline(
-
                 channel.guild.id, 
                 new_event.job_id, 
                 new_event.job_id,
@@ -273,7 +306,7 @@ async def deadline(
         await ctx.guild.create_role(name=event_name)
         await ctx.respond(embed=embed, view=view)
     else:
-        ctx.respond("Job has been created before! Choose another name!", ephemeral=True)
+        await ctx.respond("Could not create deadline! Maybe the event name has been taken or the date/time has already passed.", ephemeral=True)
 
 @client.slash_command(description="Update selected event deadline")
 @option("event_name", description="Select event to update")
@@ -302,8 +335,12 @@ async def update(
     channel: discord.TextChannel,
     description: str
 ):
+    event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
+
     if event_name.name not in event_list:
         await ctx.respond("Please select an event!", ephemeral=True)
+    elif event_deadline < datetime.now():
+        await ctx.respond("This date/time has already passed!", ephemeral=True)
     else:
         current_event = event_list[event_name.name]
 
@@ -324,7 +361,6 @@ async def update(
 
         event_list[updated_event.event_name] = updated_event
         await database.add_event_object(
-
                 ctx.guild.id, 
                 updated_event.event_name, 
                 updated_event.month, 
@@ -338,7 +374,7 @@ async def update(
                 updated_event.users_opted_in)
 
         scheduler.remove_job(updated_event.job_id)
-        await database.remove_deadline(ctx.guild.id, updated_event.job_id)
+        await database.remove_deadlines(ctx.guild.id, updated_event.job_id)
 
         scheduler.remove_job(updated_event.job_id+"-remind")
         scheduler.add_job(
@@ -353,7 +389,7 @@ async def update(
             args=[updated_event],
             id=updated_event.job_id,
             name=updated_event.event_name)
-        await database.remove_deadline(ctx.guild.id, updated_event.job_id+"-remind")
+        await database.remove_deadlines(ctx.guild.id, updated_event.job_id+"-remind")
 
         await schedule_next_reminder(updated_event)
 
@@ -377,10 +413,10 @@ async def delete(ctx: discord.ApplicationContext, event_name: discord.Role):
         await database.remove_event_object(ctx.guild.id, event_name.name)
 
         scheduler.remove_job(event_to_delete.job_id)
-        await database.remove_deadline(ctx.guild.id, event_to_delete.job_id)
+        await database.remove_deadlines(ctx.guild.id, event_to_delete.job_id)
 
         scheduler.remove_job(event_to_delete.job_id+"-remind")
-        await database.remove_deadline(ctx.guild.id, event_to_delete.job_id+"-remind")
+        await database.remove_deadlines(ctx.guild.id, event_to_delete.job_id+"-remind")
 
         await event_name.delete()
 
@@ -424,24 +460,27 @@ async def opt_out(ctx: discord.ApplicationContext, event_name: discord.Role):
 @client.slash_command(name="get-attendance", description="See who is recieving reminders for this deadline")
 @option("event_name", description="Select event to see attendance of")
 async def get_attendance(ctx: discord.ApplicationCommand, event_name: discord.Role):
-    event = event_list[event_name.name]
-    
-    if len(event.users_opted_in) == 0:
-        embed = discord.Embed(title=f"{event.event_name}", color=0xad6fa)
-        embed.add_field(name="Attendance List", value="No one is attending!", inline=False)
-
-        await ctx.respond(embed=embed)
+    if event_name.name not in event_list:
+        await ctx.respond("Please select an event!", ephemeral=True)
     else:
-        memberlist = []
+        event = event_list[event_name.name]
+        
+        if len(event.users_opted_in) == 0:
+            embed = discord.Embed(title=f"{event.event_name}", color=0xad6fa)
+            embed.add_field(name="Attendance List", value="No one is attending!", inline=False)
 
-        for member_id in event.users_opted_in:
-            member = ctx.guild.get_member(member_id)
+            await ctx.respond(embed=embed)
+        else:
+            memberlist = []
 
-            memberlist.append(f"{member.display_name}#{member.discriminator}")
+            for member_id in event.users_opted_in:
+                member = ctx.guild.get_member(member_id)
 
-        embed = discord.Embed(title=f"{event.event_name}", color=0xad6fa)
-        embed.add_field(name="Attendance List", value='\n'.join(memberlist), inline=False)
+                memberlist.append(f"{member.display_name}#{member.discriminator}")
 
-        await ctx.respond(embed=embed)
+            embed = discord.Embed(title=f"{event.event_name}", color=0xad6fa)
+            embed.add_field(name="Attendance List", value='\n'.join(memberlist), inline=False)
+
+            await ctx.respond(embed=embed)
 
 client.run(os.getenv("TOKEN"))
