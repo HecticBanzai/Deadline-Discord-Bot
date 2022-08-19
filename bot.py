@@ -197,7 +197,7 @@ async def remind(event):
 @client.event
 async def on_ready():
     for guild in client.guilds:
-        con = await asyncpg.connect(database="deadline", user="postgres", password=os.getenv("POSTGRESQL_PASSWORD"))
+        con = await asyncpg.connect(os.getenv("DATABASE_URL"))
 
         await con.execute(f"""CREATE TABLE IF NOT EXISTS events_{guild.id} (
                 event_name text PRIMARY KEY, 
