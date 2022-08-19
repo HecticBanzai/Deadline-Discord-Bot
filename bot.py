@@ -278,6 +278,33 @@ async def on_ready():
     print("Deadline Bot is up and running!")
     print("-------------------------------")
 
+@client.event
+async def on_guild_join(guild):
+    con = await asyncpg.connect(os.getenv("DATABASE_URL"))
+
+    await con.execute(f"""CREATE TABLE IF NOT EXISTS events_{guild.id} (
+            event_name text PRIMARY KEY, 
+            month text, 
+            day integer, 
+            year integer, 
+            hour integer,
+            minute integer,
+            channel_id bigint,
+            description text,
+            job_id text,
+            users_opted_in bigint[])""")
+
+    await con.execute(f"""CREATE TABLE IF NOT EXISTS jobs_{guild.id} (
+            job_id text, 
+            job_name text, 
+            year integer, 
+            month text, 
+            day integer, 
+            hour integer,
+            minute integer)""")
+
+    await con.close()
+
 @client.slash_command(description="Create an event deadline")
 @option("event_name", description="Enter event name")
 @option("month", description="Enter month of event", choices=["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
