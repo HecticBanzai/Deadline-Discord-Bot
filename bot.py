@@ -19,7 +19,7 @@ import asyncpg
 
 load_dotenv()
 
-client = discord.Bot(debug_guilds=[os.getenv("TEST_GUILD")])
+client = discord.Bot(debug_guilds=[os.getenv("TEST_GUILD"), os.getenv("GUILD")])
 
 scheduler = AsyncIOScheduler()
 scheduler.start()
