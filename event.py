@@ -4,6 +4,8 @@ from discord.utils import get
 
 import helpers
 
+import database
+
 class event:
   def __init__(self, event_name: str, month: str, day: int, year: int, hour: int, minute: int, channel_id: int, description: str, job_id: str, users_opted_in: list):
     self.event_name = event_name
@@ -88,6 +90,9 @@ class event:
         if role != None:
           if member.id not in self.users_opted_in:
             self.users_opted_in.append(member.id)
+
+            await database.update_attendance_list(interaction.guild_id, self.users_opted_in, self.event_name)
+
             await member.add_roles(role)
             await interaction.response.send_message(f"You will now recieve reminders for **{self.event_name}**!", ephemeral=True)
         else:
@@ -100,6 +105,9 @@ class event:
         if role != None:
           if member.id in self.users_opted_in:
             self.users_opted_in.remove(member.id)
+
+            await database.update_attendance_list(interaction.guild_id, self.users_opted_in, self.event_name)
+
             await member.remove_roles(role)
             await interaction.response.send_message(f"You will no longer recieve reminders for **{self.event_name}**!", ephemeral=True)
         else:
