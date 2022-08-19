@@ -24,7 +24,6 @@ async def add_deadline(guild_id: int, job_id: str, job_name: str, year: int, mon
 async def remove_deadlines(guild_id: int, id: str):
   con = await asyncpg.connect(database="deadline", user="postgres", password=os.getenv("POSTGRESQL_PASSWORD"))
   await con.execute(f"""DELETE FROM jobs_{guild_id} WHERE job_id='{id}';""")
-  await con.execute(f"""DELETE FROM jobs_{guild_id} WHERE job_id='{id}-remind';""")
   await con.close()
 
 async def update_attendance_list(guild_id: int, user_id_list: list, event_name: str):
