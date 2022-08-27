@@ -38,8 +38,7 @@ async def on_ready():
         scheduler = AsyncIOScheduler()
         scheduler.start()
 
-        # con = await asyncpg.connect(os.getenv("DATABASE_URL"))
-        con = await asyncpg.connect(database="deadline", user="postgres", password="larry1014")
+        con = await asyncpg.connect(os.getenv("DATABASE_URL"))
 
         await con.execute(f"""CREATE TABLE IF NOT EXISTS events_{guild.id} (event_name text PRIMARY KEY, 
                                                                             event_deadline_str text,
@@ -119,8 +118,7 @@ async def on_ready():
 
 @client.event
 async def on_guild_join(guild):
-    # con = await asyncpg.connect(os.getenv("DATABASE_URL"))
-    con = await asyncpg.connect(database="deadline", user="postgres", password="larry1014")
+    con = await asyncpg.connect(os.getenv("DATABASE_URL"))
 
     await con.execute(f"""CREATE TABLE IF NOT EXISTS events_{guild.id} (event_name text PRIMARY KEY, 
                                                                             event_deadline_str text,
