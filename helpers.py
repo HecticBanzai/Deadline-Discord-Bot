@@ -30,7 +30,7 @@ def create_time_string(hour, minute):
     return f"{str_hour}:{str_minute} {meridiem}"
 
 def create_date_string(month, day, year):
-    return f"{month} {day}, {year}"
+    return f"{month}/{day}/{year}"
 
 months_table_to_int = {
     "January": 1,
@@ -44,7 +44,8 @@ months_table_to_int = {
     "September": 9, 
     "October": 10, 
     "November": 11, 
-    "December": 12
+    "December": 12,
+    None: None
 }
 
 months_table_to_str = {
@@ -59,7 +60,8 @@ months_table_to_str = {
     9: "September",
     10: "October",
     11: "November",
-    12: "December"
+    12: "December",
+    None: None
 }
 
 days_in_month = {

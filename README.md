@@ -118,6 +118,7 @@ Room for improvement:
 
 To do:
 - Get list of events
+- Create guild specific schedulers
 
 ## Acknowledgements
 - Thanks you to the [Pycord Discord Server](https://discord.gg/ySu2u8Ff) for helping me through many roadblocks
