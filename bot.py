@@ -52,7 +52,7 @@ async def on_ready():
         for row in event_rows:
             event_name, event_deadline_str, send_to_channel_id, description, job_id, users_opted_in = row
 
-            event_deadline = datetime.strptime(event_deadline_str, "%Y/%m/%d %H:%M:%S %Z").astimezone(tz=timezone.utc)
+            event_deadline = datetime.strptime(event_deadline_str, "%Y/%m/%d %H:%M:%S %Z").astimezone()
             send_to_channel = client.get_channel(send_to_channel_id)
 
             delete_date = event_deadline + timedelta(days=1)
@@ -162,7 +162,7 @@ async def deadline(
     if day > helpers.days_in_month[month]:
         await ctx.respond("Please enter a viable date!", ephemeral=True)
     else:
-        event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute).astimezone(tz=timezone.utc)
+        event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute).astimezone()
 
         print(utcnow())
         print(event_deadline)
@@ -248,7 +248,7 @@ async def update(
                     helpers.months_table_to_int[month] or selected_event_deadline.month, 
                     day or selected_event_deadline.day, 
                     hour or selected_event_deadline.hour, 
-                    minute or selected_event_deadline.minute).astimezone(tz=timezone.utc)
+                    minute or selected_event_deadline.minute).astimezone()
 
                 date_already_passed = event_deadline < utcnow() # <-- utc
 
@@ -266,7 +266,7 @@ async def update(
             month=helpers.months_table_to_int[month] or event_deadline_to_update.month,
             day=day or event_deadline_to_update.day,
             hour=hour or event_deadline_to_update.hour,
-            minute=minute or event_deadline_to_update.minute).astimezone(tz=timezone.utc)
+            minute=minute or event_deadline_to_update.minute).astimezone()
 
         new_send_to_channel = channel or event_to_update_delete.send_to_channel
 
