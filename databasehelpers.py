@@ -10,7 +10,7 @@ async def add_event_object(guild_id: int, event_name: str, event_deadline: datet
 
   await con.execute(f"""INSERT INTO events_{guild_id} (event_name, event_deadline_str, send_to_channel_id, description, job_id, users_opted_in)
                         VALUES ($1, $2, $3, $4, $5, $6)""",
-                        event_name, event_deadline.strftime("%Y/%m/%d %H:%M:%S"), send_to_channel.id, description, job_id, users_opted_in)
+                        event_name, event_deadline.strftime("%Y/%m/%d %H:%M:%S %Z"), send_to_channel.id, description, job_id, users_opted_in)
   await con.close()
 
 async def remove_event_object(guild_id: int, event_name: str):

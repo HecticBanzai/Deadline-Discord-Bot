@@ -32,6 +32,7 @@ async def delete_role_and_event(event):
 
 @client.event
 async def on_ready():
+    print(discord.utils.utcnow())
     for guild in client.guilds:
         event_list = {}
 
@@ -52,13 +53,13 @@ async def on_ready():
         for row in event_rows:
             event_name, event_deadline_str, send_to_channel_id, description, job_id, users_opted_in = row
 
-            event_deadline = datetime.strptime(event_deadline_str, "%Y/%m/%d %H:%M:%S")
+            event_deadline = datetime.strptime(event_deadline_str, "%Y/%m/%d %H:%M:%S %Z").astimezone()
             send_to_channel = client.get_channel(send_to_channel_id)
 
             delete_date = event_deadline + timedelta(days=1)
 
-            event_date_not_passed = datetime.now() < event_deadline
-            delete_date_not_passed = datetime.now() < delete_date
+            event_date_not_passed = datetime.now().astimezone() < event_deadline
+            delete_date_not_passed = datetime.now().astimezone() < delete_date
 
             if delete_date_not_passed:
                 created_event = event(event_name, event_deadline, send_to_channel, description, job_id, users_opted_in)
@@ -89,7 +90,7 @@ async def on_ready():
                         id=job_id, 
                         name=event_name)
 
-                    if datetime.now() < created_event.remind_date:
+                    if datetime.now().astimezone() < created_event.remind_date:
                         scheduler.add_job(
                             created_event.announce_reminder, 
                             trigger=CronTrigger(
@@ -143,7 +144,7 @@ async def on_guild_join(guild):
 @option("event_name", description="Enter event name")
 @option("month", description="Enter month of event", choices=["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
 @option("day", description="Enter day of event", min_value=1, max_value=31)
-@option("year", description="Enter year of event", min_value=datetime.now().year)
+@option("year", description="Enter year of event", min_value=datetime.now().astimezone().year)
 @option("hour", description="Enter hour of event", min_value=0, max_value=23)
 @option("minute", description="Enter minute of event", min_value=0, max_value=59)
 @option("channel", description="Select which channel to be notified in")
@@ -162,13 +163,13 @@ async def deadline(
     if day > helpers.days_in_month[month]:
         await ctx.respond("Please enter a viable date!", ephemeral=True)
     else:
-        event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
+        event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute).astimezone()
 
         event_list = guild_list[ctx.guild.id]["event list"]
         scheduler = guild_list[ctx.guild.id]["scheduler"]
 
         job_created_before = scheduler.get_job(event_name)
-        date_passed = datetime.now() > event_deadline
+        date_passed = datetime.now().astimezone() > event_deadline
 
         if job_created_before:
             await ctx.respond("Could not create deadline! The event name has been taken.", ephemeral=True)
@@ -201,7 +202,7 @@ async def deadline(
     required=False
 )
 @option("day", description="Enter day of event", min_value=1, max_value=31, required=False)
-@option("year", description="Enter year of event", min_value=datetime.now().year, required=False)
+@option("year", description="Enter year of event", min_value=datetime.now().astimezone().year, required=False)
 @option("hour", description="Enter hour of event", min_value=0, max_value=23, required=False)
 @option("minute", description="Enter minute of event", min_value=0, max_value=59, required=False)
 @option("channel", description="Select which channel to be notified in", required=False)
@@ -226,7 +227,7 @@ async def update(
     if event_doesnt_exist:
         await ctx.respond("Please select an event!", ephemeral=True)
 
-    elif event_list[event_name.name].event_deadline < datetime.now():
+    elif event_list[event_name.name].event_deadline < datetime.now().astimezone():
         await ctx.respond("Cannot update this event! The event's deadline has already passed.", ephemeral=True)
 
     else:
@@ -244,9 +245,9 @@ async def update(
                     helpers.months_table_to_int[month] or selected_event_deadline.month, 
                     day or selected_event_deadline.day, 
                     hour or selected_event_deadline.hour, 
-                    minute or selected_event_deadline.minute)
+                    minute or selected_event_deadline.minute).astimezone()
 
-                date_already_passed = event_deadline < datetime.now()
+                date_already_passed = event_deadline < datetime.now().astimezone()
 
                 if date_already_passed:
                     await ctx.respond("This date/time has already passed!", ephemeral=True)
@@ -262,7 +263,7 @@ async def update(
             month=helpers.months_table_to_int[month] or event_deadline_to_update.month,
             day=day or event_deadline_to_update.day,
             hour=hour or event_deadline_to_update.hour,
-            minute=minute or event_deadline_to_update.minute)
+            minute=minute or event_deadline_to_update.minute).astimezone()
 
         new_send_to_channel = channel or event_to_update_delete.send_to_channel
 
@@ -329,7 +330,7 @@ async def opt_in(ctx: discord.ApplicationContext, event_name: discord.Role):
     event_exists = event_name.name in event_list
 
     if event_exists:
-        if event_list[event_name.name].event_deadline < datetime.now():
+        if event_list[event_name.name].event_deadline < datetime.now().astimezone():
             await ctx.respond(f"Cannot give you reminders for **{event_list[event_name.name].event_name}**! The event's deadline has already passed.", ephemeral=True)
         
         else:
@@ -358,7 +359,7 @@ async def opt_out(ctx: discord.ApplicationContext, event_name: discord.Role):
     event_exists = event_name.name in event_list
 
     if event_exists:
-        if event_list[event_name.name].event_deadline < datetime.now():
+        if event_list[event_name.name].event_deadline < datetime.now().astimezone():
             await ctx.respond(f"Cannot opt you out of reminders for **{event_list[event_name.name].event_name}**! The event's deadline has already passed.", ephemeral=True)
         
         else:
@@ -406,7 +407,7 @@ async def get_attendance(ctx: discord.ApplicationCommand, event_name: discord.Ro
 
                 memberlist.append(f"{member.display_name}#{member.discriminator}")
 
-            embed.add_field(name="Attendance List", value='\n'.join(memberlist), inline=False)
+            embed.add_field(name=f"Attendance List ({len(event.users_opted_in)} total)", value='\n'.join(memberlist), inline=False)
 
             await ctx.respond(embed=embed, ephemeral=True)
 
@@ -423,7 +424,7 @@ async def get_events(ctx: discord.ApplicationCommand):
 
         deadline = event.event_deadline
 
-        if deadline > datetime.now():
+        if deadline > datetime.now().astimezone():
 
             embed.add_field(
                 name=f"{event.event_name}", 

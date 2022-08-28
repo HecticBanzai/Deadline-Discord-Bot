@@ -9,7 +9,7 @@ import databasehelpers
 from datetime import datetime, timedelta
 
 def create_reminder_date(event_deadline):
-    now = datetime.now()
+    now = datetime.now().astimezone()
 
     time_difference = event_deadline - now
 
@@ -153,7 +153,7 @@ class event:
     view.add_item(get_attendance_button)
 
     async def opt_in(interaction):
-        if self.event_deadline < datetime.now():
+        if self.event_deadline < datetime.now().astimezone():
           await interaction.response.send_message(f"Cannot give you reminders for **{self.event_name}**! The event's deadline has already passed.", ephemeral=True)
 
         else:
@@ -176,7 +176,7 @@ class event:
             await interaction.response.send_message(f"Cannot send you notifications for **{self.event_name}**! Maybe the event was updated/deleted?", ephemeral=True)
 
     async def opt_out(interaction):
-        if self.event_deadline < datetime.now():
+        if self.event_deadline < datetime.now().astimezone():
             await interaction.response.send_message(f"Cannot opt you out of reminders for **{self.event_name}**! The event's deadline has already passed.", ephemeral=True)
 
         else:
@@ -214,7 +214,7 @@ class event:
           memberlist.append(f"{member.display_name}#{member.discriminator}")
 
         embed = discord.Embed(title=f"{self.event_name}", color=0xad6fa)
-        embed.add_field(name="Attendance List", value='\n'.join(memberlist), inline=False)
+        embed.add_field(name=f"Attendance List ({len(event.users_opted_in)} total)", value='\n'.join(memberlist), inline=False)
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
         
