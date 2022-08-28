@@ -204,7 +204,7 @@ class event:
         embed = discord.Embed(title=f"{self.event_name}", color=0xad6fa)
         embed.add_field(name="Attendance List", value="No one is attending!", inline=False)
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
       else:
         memberlist = []
 

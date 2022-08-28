@@ -398,7 +398,7 @@ async def get_attendance(ctx: discord.ApplicationCommand, event_name: discord.Ro
         if len(event.users_opted_in) == 0:
             embed.add_field(name="Attendance List", value="No one is attending!", inline=False)
 
-            await ctx.respond(embed=embed)
+            await ctx.respond(embed=embed, ephemeral=True)
         else:
             memberlist = []
 
