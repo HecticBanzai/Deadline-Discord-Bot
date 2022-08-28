@@ -162,10 +162,10 @@ async def deadline(
     if day > helpers.days_in_month[month]:
         await ctx.respond("Please enter a viable date!", ephemeral=True)
     else:
-        event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute).astimezone()
+        event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
 
         print(utcnow())
-        print(event_deadline.astimezone(timezone.utc))
+        print(event_deadline)
 
         event_list = guild_list[ctx.guild.id]["event list"]
         scheduler = guild_list[ctx.guild.id]["scheduler"]
@@ -181,11 +181,11 @@ async def deadline(
             await ctx.respond("Could not create deadline! Maybe the date/time has already passed.", ephemeral=True)
         
         else:
-            new_event = event(event_name, event_deadline, channel, description, event_name, [])
+            new_event = event(event_name, event_deadline.astimezone(), channel, description, event_name, [])
 
             event_list[event_name] = new_event
 
-            await databasehelpers.add_event_object(ctx.guild.id, event_name, event_deadline, channel, description, event_name, [])
+            await databasehelpers.add_event_object(ctx.guild.id, event_name, event_deadline.astimezone(), channel, description, event_name, [])
             
             schedulerhelpers.add_event_jobs(scheduler, new_event)
 
