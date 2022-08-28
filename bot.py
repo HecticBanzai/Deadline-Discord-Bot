@@ -165,7 +165,7 @@ async def deadline(
         event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
 
         print(utcnow())
-        print(event_deadline)
+        print(event_deadline.astimezone().tzinfo)
 
         event_list = guild_list[ctx.guild.id]["event list"]
         scheduler = guild_list[ctx.guild.id]["scheduler"]
