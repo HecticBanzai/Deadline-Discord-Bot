@@ -172,7 +172,7 @@ async def deadline(
 
         job_created_before = scheduler.get_job(event_name)
 
-        date_passed = utcnow() > event_deadline # <-- utc
+        date_passed = utcnow() > event_deadline.astimezone() # <-- utc
 
         if job_created_before:
             await ctx.respond("Could not create deadline! The event name has been taken.", ephemeral=True)
