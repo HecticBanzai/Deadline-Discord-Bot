@@ -1,7 +1,7 @@
 from datetime import datetime
 import discord
 from discord.ui import Button, View
-from discord.utils import get
+from discord.utils import get, utcnow
 
 import helpers
 import databasehelpers
@@ -9,7 +9,7 @@ import databasehelpers
 from datetime import datetime, timedelta
 
 def create_reminder_date(event_deadline):
-    now = datetime.now().astimezone()
+    now = utcnow()
 
     time_difference = event_deadline - now
 
@@ -72,13 +72,13 @@ class event:
     self.users_opted_in = users_opted_in or []
   
   def __str__(self):
-    return f"Event: {self.event_name}, {helpers.create_date_string(self.event_deadline.month, self.event_deadline.day, self.event_deadline.year)}, {helpers.create_time_string(self.event_deadline.hour, self.event_deadline.hour)}"
+    return f"Event: {self.event_name}, {helpers.create_date_string(self.event_deadline.astimezone().month, self.event_deadline.astimezone().day, self.event_deadline.astimezone().year)}, {helpers.create_time_string(self.event_deadline.astimezone().hour, self.event_deadline.astimezone().hour)}"
 
   async def announce_create(self):
       embed = discord.Embed(title="Event Created!", color=0xad6fa)
       embed.add_field(name="Event Name", value=self.event_name, inline=False)
-      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline.month, self.event_deadline.day, self.event_deadline.year)}", inline=True)
-      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline.hour, self.event_deadline.minute)}", inline=True)
+      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline.astimezone().month, self.event_deadline.astimezone().day, self.event_deadline.astimezone().year)}", inline=True)
+      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline.astimezone().hour, self.event_deadline.astimezone().minute)}", inline=True)
 
       if self.description != None:
           embed.add_field(name="Description", value=self.description, inline=False)
@@ -90,8 +90,8 @@ class event:
   async def announce_reminder(self):
       embed = discord.Embed(title="Event Reminder!", color=0xad6fa)
       embed.add_field(name="Event Name", value=self.event_name, inline=False)
-      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline.month, self.event_deadline.day, self.event_deadline.year)}", inline=True)
-      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline.hour, self.event_deadline.minute)}", inline=True)
+      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline.astimezone().month, self.event_deadline.astimezone().day, self.event_deadline.astimezone().year)}", inline=True)
+      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline.astimezone().hour, self.event_deadline.astimezone().minute)}", inline=True)
 
       if self.description != None:
           embed.add_field(name="Description", value=self.description, inline=False)
@@ -105,8 +105,8 @@ class event:
   async def announce_start(self):
       embed = discord.Embed(title="Event Starting!", color=0xad6fa)
       embed.add_field(name="Event Name", value=self.event_name, inline=False)
-      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline.month, self.event_deadline.day, self.event_deadline.year)}", inline=True)
-      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline.hour, self.event_deadline.minute)}", inline=True)
+      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline.astimezone().month, self.event_deadline.astimezone().day, self.event_deadline.astimezone().year)}", inline=True)
+      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline.astimezone().hour, self.event_deadline.astimezone().minute)}", inline=True)
 
       if self.description != None:
           embed.add_field(name="Description", value=self.description, inline=False)
@@ -118,8 +118,8 @@ class event:
   async def announce_update(self):
       embed = discord.Embed(title="Event Updated!", color=0xad6fa)
       embed.add_field(name="Event Name", value=self.event_name, inline=False)
-      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline.month, self.event_deadline.day, self.event_deadline.year)}", inline=True)
-      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline.hour, self.event_deadline.minute)}", inline=True)
+      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline.astimezone().month, self.event_deadline.astimezone().day, self.event_deadline.astimezone().year)}", inline=True)
+      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline.astimezone().hour, self.event_deadline.astimezone().minute)}", inline=True)
 
       if self.description != None:
           embed.add_field(name="Description", value=self.description, inline=False)
@@ -153,7 +153,7 @@ class event:
     view.add_item(get_attendance_button)
 
     async def opt_in(interaction):
-        if self.event_deadline < datetime.now().astimezone():
+        if self.event_deadline < utcnow():
           await interaction.response.send_message(f"Cannot give you reminders for **{self.event_name}**! The event's deadline has already passed.", ephemeral=True)
 
         else:
@@ -176,7 +176,7 @@ class event:
             await interaction.response.send_message(f"Cannot send you notifications for **{self.event_name}**! Maybe the event was updated/deleted?", ephemeral=True)
 
     async def opt_out(interaction):
-        if self.event_deadline < datetime.now().astimezone():
+        if self.event_deadline < utcnow():
             await interaction.response.send_message(f"Cannot opt you out of reminders for **{self.event_name}**! The event's deadline has already passed.", ephemeral=True)
 
         else:
