@@ -202,6 +202,7 @@ async def deadline(
 
 @client.slash_command(description="Update selected event deadline")
 @option("event_name", description="Select event to update")
+@option("timezone", description="Enter your timezone", choices=["Hawaii", "Aleutian", "Alaska", "Pacific", "Mountain", "Central", "Eastern"])
 @option("new_event_name", description="Enter new event name", required=False)
 @option(
     "month", 
@@ -215,10 +216,10 @@ async def deadline(
 @option("minute", description="Enter minute of event", min_value=0, max_value=59, required=False)
 @option("channel", description="Select which channel to be notified in", required=False)
 @option("description", description="Add description or extra details", required=False)
-@option("timezone", description="Enter your timezone", choices=["Hawaii", "Aleutian", "Alaska", "Pacific", "Mountain", "Central", "Eastern"])
 async def update(
     ctx: discord.ApplicationContext,
     event_name: discord.Role,
+    timezone: str,
     new_event_name: str,
     month: str,
     day: int,
@@ -227,7 +228,6 @@ async def update(
     minute: int,
     channel: discord.TextChannel,
     description: str,
-    timezone: str
 ):
     event_list = guild_list[ctx.guild.id]["event list"]
     scheduler = guild_list[ctx.guild.id]["scheduler"]
