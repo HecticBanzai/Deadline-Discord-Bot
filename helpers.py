@@ -10,34 +10,6 @@ def suffix(day):
     else:
         return str(day) + "th"
 
-def create_time_string(datetime_object: datetime):
-    hour = datetime_object.hour
-    minute = datetime_object.minute
-
-    if hour == 12 or hour == 0:
-      str_hour = "12"
-    else:
-      str_hour = str(hour % 12)
-
-    str_minute = ""
-    meridiem = ""
-
-    if hour >= 12:
-        meridiem = "PM"
-    else:
-        meridiem = "AM"
-
-    if minute < 10:
-        str_minute = "0" + str(minute)
-    else:
-        str_minute = str(minute)
-    
-    return f"{str_hour}:{str_minute} {meridiem}"
-
-def create_date_string(datetime_object: datetime):
-    print(datetime_object.tzinfo.tzname)
-    return f"{datetime_object.month}/{datetime_object.day}/{datetime_object.year}"
-
 months_table_to_int = {
     "January": 1,
     "Feburary": 2,
@@ -93,14 +65,4 @@ tzname_to_localize = {
     "Mountain": "US/Mountain",
     "Central": "US/Central",
     "Eastern": "US/Eastern"
-}
-
-localize_to_tzname = {
-    "US/Hawaii": "Hawaii",
-    "US/Aleutian": "Aleutian",
-    "US/Alaska": "Alaska",
-    "US/Pacific": "Pacific",
-    "US/Mountain": "Mountain",
-    "US/Central":  "Central",
-    "US/Eastern": "Eastern"
 }

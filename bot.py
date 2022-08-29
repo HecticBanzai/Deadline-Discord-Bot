@@ -424,7 +424,7 @@ async def get_events(ctx: discord.ApplicationCommand):
 
             embed.add_field(
                 name=f"{event.event_name}", 
-                value=f"{helpers.create_date_string(deadline.month, deadline.day, deadline.year)} @ {helpers.create_time_string(deadline.hour, deadline.hour)}", 
+                value=f"{deadline.strftime('%Y/%m/%d %H:%M:%S %Z')}", 
             inline=False)
 
     if len(embed.fields) == 0:

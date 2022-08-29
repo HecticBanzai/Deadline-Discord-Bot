@@ -72,13 +72,12 @@ class event:
     self.users_opted_in = users_opted_in or []
   
   def __str__(self):
-    return f"Event: {self.event_name}, {helpers.create_date_string(self.event_deadline)}, {helpers.create_time_string(self.event_deadline)}"
+    return f"Event: {self.event_name}, {self.event_deadline.strftime('%Y/%m/%d %H:%M:%S %Z')}"
 
   async def announce_create(self):
       embed = discord.Embed(title="Event Created!", color=0xad6fa)
       embed.add_field(name="Event Name", value=self.event_name, inline=False)
-      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline)}", inline=True)
-      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline)}", inline=True)
+      embed.add_field(name="Date & Time", value=f"{self.event_deadline.strftime('%Y/%m/%d %H:%M:%S %Z')}", inline=True)
 
       if self.description != None:
           embed.add_field(name="Description", value=self.description, inline=False)
@@ -90,8 +89,7 @@ class event:
   async def announce_reminder(self):
       embed = discord.Embed(title="Event Reminder!", color=0xad6fa)
       embed.add_field(name="Event Name", value=self.event_name, inline=False)
-      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline)}", inline=True)
-      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline)}", inline=True)
+      embed.add_field(name="Date & Time", value=f"{self.event_deadline.strftime('%Y/%m/%d %H:%M:%S %Z')}", inline=True)
 
       if self.description != None:
           embed.add_field(name="Description", value=self.description, inline=False)
@@ -105,8 +103,7 @@ class event:
   async def announce_start(self):
       embed = discord.Embed(title="Event Starting!", color=0xad6fa)
       embed.add_field(name="Event Name", value=self.event_name, inline=False)
-      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline)}", inline=True)
-      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline)}", inline=True)
+      embed.add_field(name="Date & Time", value=f"{self.event_deadline.strftime('%Y/%m/%d %H:%M:%S %Z')}", inline=True)
       
       if self.description != None:
           embed.add_field(name="Description", value=self.description, inline=False)
@@ -118,8 +115,7 @@ class event:
   async def announce_update(self):
       embed = discord.Embed(title="Event Updated!", color=0xad6fa)
       embed.add_field(name="Event Name", value=self.event_name, inline=False)
-      embed.add_field(name="Date", value=f"{helpers.create_date_string(self.event_deadline)}", inline=True)
-      embed.add_field(name="Time", value=f"{helpers.create_time_string(self.event_deadline)}", inline=True)
+      embed.add_field(name="Date & Time", value=f"{self.event_deadline.strftime('%Y/%m/%d %H:%M:%S %Z')}", inline=True)
       
       if self.description != None:
           embed.add_field(name="Description", value=self.description, inline=False)
