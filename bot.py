@@ -255,7 +255,7 @@ async def update(
             day or selected_event_deadline.day, 
             hour or selected_event_deadline.hour, 
             minute or selected_event_deadline.minute)
-        event_deadline_aware = pytz.timezone(helpers.tzname_to_localize[helpers.tzname_to_localize[timezone] or selected_event_deadline.tzinfo]).localize(event_deadline_naive)
+        event_deadline_aware = pytz.timezone(helpers.tzname_to_localize[timezone or selected_event_deadline.tzinfo]).localize(event_deadline_naive)
 
         date_already_passed = event_deadline_aware.astimezone(pytz.utc) < utcnow()
 
