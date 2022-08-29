@@ -213,9 +213,9 @@ async def deadline(
 @option("year", description="Enter year of event", min_value=utcnow().year, required=False)
 @option("hour", description="Enter hour of event", min_value=0, max_value=23, required=False)
 @option("minute", description="Enter minute of event", min_value=0, max_value=59, required=False)
-@option("timezone", description="Enter your timezone", choices=["Hawaii", "Aleutian", "Alaska", "Pacific", "Mountain", "Central", "Eastern"], required=False)
 @option("channel", description="Select which channel to be notified in", required=False)
 @option("description", description="Add description or extra details", required=False)
+@option("timezone", description="Enter your timezone", choices=["Hawaii", "Aleutian", "Alaska", "Pacific", "Mountain", "Central", "Eastern"])
 async def update(
     ctx: discord.ApplicationContext,
     event_name: discord.Role,
@@ -225,9 +225,9 @@ async def update(
     year: int,
     hour: int,
     minute: int,
-    timezone: str,
     channel: discord.TextChannel,
-    description: str
+    description: str,
+    timezone: str
 ):
     event_list = guild_list[ctx.guild.id]["event list"]
     scheduler = guild_list[ctx.guild.id]["scheduler"]
@@ -255,7 +255,7 @@ async def update(
             day or selected_event_deadline.day, 
             hour or selected_event_deadline.hour, 
             minute or selected_event_deadline.minute)
-        event_deadline_aware = pytz.timezone(helpers.tzname_to_localize[timezone or selected_event_deadline.tzinfo]).localize(event_deadline_naive)
+        event_deadline_aware = pytz.timezone(helpers.tzname_to_localize[timezone]).localize(event_deadline_naive) # <--- .tzinfo
 
         date_already_passed = event_deadline_aware.astimezone(pytz.utc) < utcnow()
 
