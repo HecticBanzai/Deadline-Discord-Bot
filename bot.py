@@ -424,7 +424,7 @@ async def get_events(ctx: discord.ApplicationCommand):
 
             embed.add_field(
                 name=f"{event.event_name}", 
-                value=f"{deadline.strftime('%Y/%m/%d %H:%M:%S %Z')}", 
+                value=f"{deadline.strftime('%Y/%m/%d %H:%M %Z')} | {len(event.users_opted_in)} people attending", 
             inline=False)
 
     if len(embed.fields) == 0:
