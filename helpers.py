@@ -1,3 +1,5 @@
+from datetime import datetime
+
 def suffix(day):
     if day % 10 == 1:
         return str(day) + "st"
@@ -8,7 +10,10 @@ def suffix(day):
     else:
         return str(day) + "th"
 
-def create_time_string(hour, minute):
+def create_time_string(datetime_object: datetime):
+    hour = datetime_object.hour
+    minute = datetime_object.minute
+
     if hour == 12 or hour == 0:
       str_hour = "12"
     else:
@@ -29,8 +34,9 @@ def create_time_string(hour, minute):
     
     return f"{str_hour}:{str_minute} {meridiem}"
 
-def create_date_string(month, day, year):
-    return f"{month}/{day}/{year}"
+def create_date_string(datetime_object: datetime):
+    print(datetime_object.tzinfo.tzname)
+    return f"{datetime_object.month}/{datetime_object.day}/{datetime_object.year}"
 
 months_table_to_int = {
     "January": 1,
@@ -77,4 +83,24 @@ days_in_month = {
     "October": 31, 
     "November": 30, 
     "December": 31
+}
+
+tzname_to_localize = {
+    "Hawaii": "US/Hawaii",
+    "Aleutian": "US/Aleutian",
+    "Alaska": "US/Alaska",
+    "Pacific": "US/Pacific",
+    "Mountain": "US/Mountain",
+    "Central": "US/Central",
+    "Eastern": "US/Eastern"
+}
+
+localize_to_tzname = {
+    "US/Hawaii": "Hawaii",
+    "US/Aleutian": "Aleutian",
+    "US/Alaska": "Alaska",
+    "US/Pacific": "Pacific",
+    "US/Mountain": "Mountain",
+    "US/Central":  "Central",
+    "US/Eastern": "Eastern"
 }

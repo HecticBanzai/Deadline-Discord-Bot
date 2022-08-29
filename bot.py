@@ -1,7 +1,10 @@
 import discord
 from discord import option
 from discord.utils import get, utcnow
+
 from datetime import datetime, timedelta, timezone
+
+import pytz
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -39,6 +42,7 @@ async def on_ready():
         scheduler.start()
 
         con = await asyncpg.connect(os.getenv("DATABASE_URL"))
+        # con = await asyncpg.connect(database="deadline", user="postgres", password="larry1014")
 
         await con.execute(f"""CREATE TABLE IF NOT EXISTS events_{guild.id} (event_name text PRIMARY KEY, 
                                                                             event_deadline_str text,
@@ -52,13 +56,13 @@ async def on_ready():
         for row in event_rows:
             event_name, event_deadline_str, send_to_channel_id, description, job_id, users_opted_in = row
 
-            event_deadline = datetime.strptime(event_deadline_str, "%Y/%m/%d %H:%M:%S %Z").astimezone()
+            event_deadline = datetime.fromisoformat(event_deadline_str)
             send_to_channel = client.get_channel(send_to_channel_id)
 
             delete_date = event_deadline + timedelta(days=1)
 
-            event_date_not_passed = utcnow() < event_deadline # <-- utc
-            delete_date_not_passed = utcnow() < delete_date # <-- utc
+            event_date_not_passed = utcnow() < event_deadline.astimezone(pytz.utc) # <-- Local TZ
+            delete_date_not_passed = utcnow() < delete_date.astimezone(pytz.utc) # <-- Local TZ
 
             if delete_date_not_passed:
                 created_event = event(event_name, event_deadline, send_to_channel, description, job_id, users_opted_in)
@@ -68,11 +72,11 @@ async def on_ready():
                 scheduler.add_job(
                     delete_role_and_event, 
                     trigger=CronTrigger(
-                        year=delete_date.year,
-                        month=delete_date.month,
-                        day=delete_date.day,
-                        hour=delete_date.hour,
-                        minute=delete_date.minute), 
+                        year=delete_date.astimezone(pytz.utc).year,
+                        month=delete_date.astimezone(pytz.utc).month,
+                        day=delete_date.astimezone(pytz.utc).day,
+                        hour=delete_date.astimezone(pytz.utc).hour,
+                        minute=delete_date.astimezone(pytz.utc).minute), 
                     args=[event_list[event_name]], 
                     id=job_id+"-delete", 
                     name=event_name+"-delete")
@@ -81,11 +85,11 @@ async def on_ready():
                     scheduler.add_job(
                         created_event.announce_start, 
                         trigger=CronTrigger(
-                            year=event_deadline.year,
-                            month=event_deadline.month,
-                            day=event_deadline.day,
-                            hour=event_deadline.hour,
-                            minute=event_deadline.minute),  
+                            year=event_deadline.astimezone(pytz.utc).year,
+                            month=event_deadline.astimezone(pytz.utc).month,
+                            day=event_deadline.astimezone(pytz.utc).day,
+                            hour=event_deadline.astimezone(pytz.utc).hour,
+                            minute=event_deadline.astimezone(pytz.utc).minute),  
                         id=job_id, 
                         name=event_name)
 
@@ -93,11 +97,11 @@ async def on_ready():
                         scheduler.add_job(
                             created_event.announce_reminder, 
                             trigger=CronTrigger(
-                                year=created_event.remind_date.year,
-                                month=created_event.remind_date.month,
-                                day=created_event.remind_date.day,
-                                hour=created_event.remind_date.hour,
-                                minute=created_event.remind_date.minute), 
+                                year=created_event.remind_date.astimezone(pytz.utc).year,
+                                month=created_event.remind_date.astimezone(pytz.utc).month,
+                                day=created_event.remind_date.astimezone(pytz.utc).day,
+                                hour=created_event.remind_date.astimezone(pytz.utc).hour,
+                                minute=created_event.remind_date.astimezone(pytz.utc).minute), 
                             id=job_id+"-remind",
                             name=event_name+"-remind")
 
@@ -119,6 +123,7 @@ async def on_ready():
 @client.event
 async def on_guild_join(guild):
     con = await asyncpg.connect(os.getenv("DATABASE_URL"))
+    # con = await asyncpg.connect(database="deadline", user="postgres", password="larry1014")
 
     await con.execute(f"""CREATE TABLE IF NOT EXISTS events_{guild.id} (event_name text PRIMARY KEY, 
                                                                             event_deadline_str text,
@@ -146,6 +151,7 @@ async def on_guild_join(guild):
 @option("year", description="Enter year of event", min_value=utcnow().year)
 @option("hour", description="Enter hour of event", min_value=0, max_value=23)
 @option("minute", description="Enter minute of event", min_value=0, max_value=59)
+@option("timezone", description="Enter your timezone", choices=["Hawaii", "Aleutian", "Alaska", "Pacific", "Mountain", "Central", "Eastern"])
 @option("channel", description="Select which channel to be notified in")
 @option("description", description="Add description or extra details", required=False)
 async def deadline(
@@ -156,23 +162,22 @@ async def deadline(
     year: int,
     hour: int,
     minute: int,
+    timezone: str,
     channel: discord.TextChannel,
     description: str
 ):
     if day > helpers.days_in_month[month]:
         await ctx.respond("Please enter a viable date!", ephemeral=True)
     else:
-        event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
-
-        print(utcnow())
-        print(event_deadline.astimezone().tzinfo)
+        event_deadline_naive = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
+        event_deadline_aware = pytz.timezone(helpers.tzname_to_localize[timezone]).localize(event_deadline_naive)
 
         event_list = guild_list[ctx.guild.id]["event list"]
         scheduler = guild_list[ctx.guild.id]["scheduler"]
 
         job_created_before = scheduler.get_job(event_name)
 
-        date_passed = utcnow() > event_deadline.astimezone() # <-- utc
+        date_passed = utcnow() > event_deadline_aware.astimezone(pytz.utc)
 
         if job_created_before:
             await ctx.respond("Could not create deadline! The event name has been taken.", ephemeral=True)
@@ -181,13 +186,13 @@ async def deadline(
             await ctx.respond("Could not create deadline! Maybe the date/time has already passed.", ephemeral=True)
         
         else:
-            new_event = event(event_name, event_deadline.astimezone(), channel, description, event_name, [])
+            new_event = event(event_name, event_deadline_aware, channel, description, event_name, []) # <--- datetime added as Local TZ
 
             event_list[event_name] = new_event
 
-            await databasehelpers.add_event_object(ctx.guild.id, event_name, event_deadline.astimezone(), channel, description, event_name, [])
+            await databasehelpers.add_event_object(ctx.guild.id, new_event) # <--- datetime added as Local TZ
             
-            schedulerhelpers.add_event_jobs(scheduler, new_event)
+            schedulerhelpers.add_event_jobs(scheduler, new_event) # <--- datetime added as UTC
 
             await ctx.guild.create_role(name=event_name)
 
@@ -208,6 +213,7 @@ async def deadline(
 @option("year", description="Enter year of event", min_value=utcnow().year, required=False)
 @option("hour", description="Enter hour of event", min_value=0, max_value=23, required=False)
 @option("minute", description="Enter minute of event", min_value=0, max_value=59, required=False)
+@option("timezone", description="Enter your timezone", choices=["Hawaii", "Aleutian", "Alaska", "Pacific", "Mountain", "Central", "Eastern"], required=False)
 @option("channel", description="Select which channel to be notified in", required=False)
 @option("description", description="Add description or extra details", required=False)
 async def update(
@@ -219,6 +225,7 @@ async def update(
     year: int,
     hour: int,
     minute: int,
+    timezone: str,
     channel: discord.TextChannel,
     description: str
 ):
@@ -230,7 +237,7 @@ async def update(
     if event_doesnt_exist:
         await ctx.respond("Please select an event!", ephemeral=True)
 
-    elif event_list[event_name.name].event_deadline < utcnow(): # <-- utc
+    elif event_list[event_name.name].event_deadline.astimezone(pytz.utc) < utcnow(): # <-- utc
         await ctx.respond("Cannot update this event! The event's deadline has already passed.", ephemeral=True)
 
     else:
@@ -242,31 +249,24 @@ async def update(
 
                 return
 
-            else:
-                event_deadline = datetime(
-                    year or selected_event_deadline.year, 
-                    helpers.months_table_to_int[month] or selected_event_deadline.month, 
-                    day or selected_event_deadline.day, 
-                    hour or selected_event_deadline.hour, 
-                    minute or selected_event_deadline.minute).astimezone()
+        event_deadline_naive = datetime(
+            year or selected_event_deadline.year, 
+            helpers.months_table_to_int[month] or selected_event_deadline.month, 
+            day or selected_event_deadline.day, 
+            hour or selected_event_deadline.hour, 
+            minute or selected_event_deadline.minute)
+        event_deadline_aware = pytz.timezone(helpers.tzname_to_localize[helpers.tzname_to_localize[timezone] or selected_event_deadline.tzinfo]).localize(event_deadline_naive)
 
-                date_already_passed = event_deadline < utcnow() # <-- utc
+        date_already_passed = event_deadline_aware.astimezone(pytz.utc) < utcnow()
 
-                if date_already_passed:
-                    await ctx.respond("This date/time has already passed!", ephemeral=True)
+        if date_already_passed:
+            await ctx.respond("This date/time has already passed!", ephemeral=True)
 
-                    return
+            return
 
         event_to_update_delete = event_list.pop(event_name.name)
 
-        event_deadline_to_update = event_to_update_delete.event_deadline
-
-        new_event_deadline = datetime(
-            year=year or event_deadline_to_update.year,
-            month=helpers.months_table_to_int[month] or event_deadline_to_update.month,
-            day=day or event_deadline_to_update.day,
-            hour=hour or event_deadline_to_update.hour,
-            minute=minute or event_deadline_to_update.minute).astimezone()
+        new_event_deadline = event_deadline_aware
 
         new_send_to_channel = channel or event_to_update_delete.send_to_channel
 
@@ -283,14 +283,7 @@ async def update(
 
         event_list[updated_event.event_name] = updated_event
 
-        await databasehelpers.add_event_object(
-                ctx.guild.id, 
-                updated_event.event_name, 
-                updated_event.event_deadline, 
-                updated_event.send_to_channel, 
-                updated_event.description, 
-                updated_event.job_id, 
-                updated_event.users_opted_in)
+        await databasehelpers.add_event_object(ctx.guild.id, updated_event)
 
         schedulerhelpers.delete_event_jobs(scheduler, event_to_update_delete)
 
@@ -333,7 +326,7 @@ async def opt_in(ctx: discord.ApplicationContext, event_name: discord.Role):
     event_exists = event_name.name in event_list
 
     if event_exists:
-        if event_list[event_name.name].event_deadline < utcnow(): # <-- utc
+        if event_list[event_name.name].event_deadline.astimezone(pytz.utc) < utcnow(): # <-- utc
             await ctx.respond(f"Cannot give you reminders for **{event_list[event_name.name].event_name}**! The event's deadline has already passed.", ephemeral=True)
         
         else:
@@ -362,7 +355,7 @@ async def opt_out(ctx: discord.ApplicationContext, event_name: discord.Role):
     event_exists = event_name.name in event_list
 
     if event_exists:
-        if event_list[event_name.name].event_deadline < utcnow(): # <-- utc
+        if event_list[event_name.name].event_deadline.astimezone(pytz.utc) < utcnow(): # <-- utc
             await ctx.respond(f"Cannot opt you out of reminders for **{event_list[event_name.name].event_name}**! The event's deadline has already passed.", ephemeral=True)
         
         else:
@@ -427,7 +420,7 @@ async def get_events(ctx: discord.ApplicationCommand):
 
         deadline = event.event_deadline
 
-        if deadline > utcnow(): # <-- utc
+        if deadline.astimezone(pytz.utc) > utcnow(): # <-- utc
 
             embed.add_field(
                 name=f"{event.event_name}", 

@@ -1,15 +1,17 @@
-from datetime import datetime, timedelta
+from datetime import timezone
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 import databasehelpers
 
+import pytz
+
 from discord.utils import get
 
 import event
 
-def delete_role_and_event(event):
+def delete_role_and_event(event: event):
     channel = event.send_to_channel
 
     role_to_delete = get(channel.guild.roles, name=event.event_name)
@@ -18,36 +20,41 @@ def delete_role_and_event(event):
     databasehelpers.remove_event_object(channel.guild.id, event.event_name)
 
 def add_event_jobs(scheduler: AsyncIOScheduler, event_object: event):
+    print(event_object.event_deadline)
+    event_deadline_utc = event_object.event_deadline.astimezone(pytz.utc)
+    remind_date_utc = event_object.remind_date.astimezone(pytz.utc)
+    delete_date_utc = event_object.delete_date.astimezone(pytz.utc)
+
     scheduler.add_job(
         event_object.announce_start, 
         trigger=CronTrigger(
-            year=event_object.event_deadline.year,
-            month=event_object.event_deadline.month,
-            day=event_object.event_deadline.day,
-            hour=event_object.event_deadline.hour,
-            minute=event_object.event_deadline.minute),
+            year=event_deadline_utc.year,
+            month=event_deadline_utc.month,
+            day=event_deadline_utc.day,
+            hour=event_deadline_utc.hour,
+            minute=event_deadline_utc.minute),
         id=event_object.job_id, 
         name=event_object.event_name)
 
     scheduler.add_job(
         event_object.announce_reminder, 
         trigger=CronTrigger(
-            year=event_object.remind_date.year,
-            month=event_object.remind_date.month,
-            day=event_object.remind_date.day,
-            hour=event_object.remind_date.hour,
-            minute=event_object.remind_date.minute), 
+            year=remind_date_utc.year,
+            month=remind_date_utc.month,
+            day=remind_date_utc.day,
+            hour=remind_date_utc.hour,
+            minute=remind_date_utc.minute), 
         id=event_object.job_id+"-remind", 
         name=event_object.event_name+"-remind")
 
     scheduler.add_job(
         delete_role_and_event, 
         trigger=CronTrigger(
-            year=event_object.delete_date.year,
-            month=event_object.delete_date.month,
-            day=event_object.delete_date.day,
-            hour=event_object.delete_date.hour,
-            minute=event_object.delete_date.minute), 
+            year=delete_date_utc.year,
+            month=delete_date_utc.month,
+            day=delete_date_utc.day,
+            hour=delete_date_utc.hour,
+            minute=delete_date_utc.minute), 
         args=[event_object], 
         id=event_object.job_id+"-delete", 
         name=event_object.event_name+"-delete")
