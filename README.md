@@ -48,7 +48,7 @@
 
 ### Create Deadline
 
-`/deadline {event_name} {month} {day} {year} {hour} {minute} {channel} {*description}`
+`/deadline {event_name} {month} {day} {year} {hour} {minute} {channel} {timezone} {*description}` - Creates new event.
 
 - ***event_name***: Name of the event you will make the deadline for. It will also be the name of the role that the command will create.
 - ***month***: The month of the deadline date. The command will give you the list of all the months to choose from.
@@ -56,6 +56,7 @@
 - ***year***: The year of the deadline date. By default the minimum year will be the current year.
 - ***hour***: The hour of the deadline date. You must enter value between 0 and 23 where 0 stands for 12:00 AM and 23 stands for 11:00 PM
 - ***minute***: The minute of the deadline date. You must enter a value between 0 and 59.
+- ***timezone***: Select timezone the deadline will be in. All timezones in the U.S. are supported.
 - ***channel***: This will be the channel that the bot will send reminders to. This does not include updates to deadlines/events.
 -  ***description***: A description is optional. This is where you can put any extra details such as where to meet up or what is going to happen at the event.
 
@@ -63,16 +64,17 @@
 
 ### Update Event
 
-`/update {event_name} {*new_event_name} {*month} {*day} {*year} {*hour} {*minute} {*channel} {*description}`
+`/update {event_name} {timezone} {*new_event_name} {*month} {*day} {*year} {*hour} {*minute} {*channel} {*description}`  - Updates event.
 
 - ***event_name***: Name of the event you will update. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
+- ***timezone***: New timezone. Must be entered if you are updating anything related to the event's deadline.
 - ***new_event_name***: New name for the of event you want to change. This will also change the role name.
 
 ![Example update](./screenshots/example%20update.png)
 
 ### Delete Event
 
-`/delete {event_name}`
+`/delete {event_name}` - Deletes event.
 
 - ***event_name***: Name of the event you will delete. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
 
@@ -80,7 +82,7 @@
 
 ### Opt out for reminders
 
-`/opt-in {event_name}`
+`/opt-in {event_name}` - Makes it so that the user recieves pings/reminders.
 
 - ***event_name***: Name of the event you will get reminders for. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
 
@@ -88,7 +90,7 @@
 
 ### Opt out of reminders
 
-`/opt-out {event_name}`
+`/opt-out {event_name}` - Makes it so that the user no longer recieves pings/reminders.
 
 - ***event_name***: Name of the event you want to no longer receive notifications for. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
 
@@ -96,11 +98,15 @@
 
 ### Get attendance
 
-`/get-attendance {event_name}`
+`/get-attendance {event_name}` - Returns list of all users recieving updates for an event.
 
 - ***event_name***: Name of the event you want to see attendance of. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
 
 ![Example get attendance](./screenshots/example%20get%20attendance.png)
+
+`/get-events ` - Returns list of all events in the server.
+
+![Example get attendance](./screenshots/example%20get%20events.png)
 
 ### Buttons
 - ***Opt in for reminders***: Does the exact same as the opt-in command.

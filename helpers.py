@@ -1,5 +1,3 @@
-from datetime import datetime
-
 def suffix(day):
     if day % 10 == 1:
         return str(day) + "st"
