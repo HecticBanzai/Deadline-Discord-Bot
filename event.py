@@ -3,7 +3,6 @@ import discord
 from discord.ui import Button, View
 from discord.utils import get, utcnow
 
-import helpers
 import databasehelpers
 
 from datetime import datetime, timedelta
@@ -21,8 +20,6 @@ def create_reminder_date(event_deadline):
         # If the event is at least 42 days away
         if difference_in_days > 42:
             padded_difference_in_days = difference_in_days - 42
-
-            # print(f"padded difference {padded_difference_in_days}" )
 
             # Check if the amount of days away is a multiple of 28
             if padded_difference_in_days % 28 != 0:
