@@ -2,9 +2,65 @@ import discord
 from discord.ui import Button, View
 from discord.utils import get
 
+<<<<<<< Updated upstream
 import helpers
 
 import database
+=======
+import databasehelpers
+
+from datetime import datetime, timedelta
+
+def create_reminder_date(event_deadline):
+    now = utcnow()
+
+    time_difference = event_deadline - now
+
+    difference_in_days = time_difference.days
+
+    # If the event is at least 1 day away
+    if difference_in_days > 1:
+
+        # If the event is at least 42 days away
+        if difference_in_days > 42:
+            padded_difference_in_days = difference_in_days - 42
+
+            # Check if the amount of days away is a multiple of 28
+            if padded_difference_in_days % 28 != 0:
+                next_reminder_date = now + timedelta(days=padded_difference_in_days % 28)
+            else:
+                next_reminder_date = now + timedelta(days=28)
+        
+        # If the event is at least 42 days away
+        else:
+            # Check if the amount of days away is a multiple of 14
+            if difference_in_days % 14 != 0:
+                next_reminder_date = now + timedelta(days=difference_in_days % 14)
+            else:
+                next_reminder_date = now + timedelta(days=14)
+
+            # Check if the last reminder is on the day of the event
+            same_date = next_reminder_date.year == event_deadline.year and next_reminder_date.month == event_deadline.month and next_reminder_date.day == event_deadline.day
+            if same_date:
+                next_reminder_date -= timedelta(days=1)
+
+        return next_reminder_date
+
+    # If the event is at exactly 1 day away
+    elif difference_in_days == 1:
+        next_reminder_date = event_deadline - timedelta(hours = 1)
+
+        return next_reminder_date
+
+  # If it is the day of the event
+    else:
+        next_reminder_date = event_deadline - timedelta(minutes = 15)
+
+        if not next_reminder_date < now:
+            return next_reminder_date
+        else:
+            return event_deadline + timedelta(days=2)
+>>>>>>> Stashed changes
 
 class event:
   def __init__(self, event_name: str, month: str, day: int, year: int, hour: int, minute: int, channel_id: int, description: str, job_id: str, users_opted_in: list):

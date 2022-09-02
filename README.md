@@ -15,8 +15,8 @@
 
 ## General Information
 - The Deadline Discord Bot is designed to remind people of upcoming events via roles and pings.
-- Because of our busy high school lives, sometimes we get sidetracked from the events we plan. With this Discord bot, we will not have to worry about remembering what's coming up.
-- After taking learning basic Python in my high school Artificial Intelligence class, I wanted to expand my knowledge and experience programming for real world applications with tools such as Heroku and Github. 
+- Because of our lives, sometimes we get sidetracked from the events we plan. With this Discord bot, you will no longer have to worry about remembering any deadlines/events coming up.
+- After taking learning basic Python in my high school Artificial Intelligence class, I wanted to expand my knowledge and experience programming for real world applications with tools such as Heroku, Github, and databases. 
 
 ## Technologies Used
 - Python - version 3.10.6
@@ -31,12 +31,13 @@
 - Delete deadlines
 - Opt in or out of reminders for deadlines
 - Check attendance list to see who is receiving reminders
+- See list of all events in a server
 
 ## Screenshots
-![Example screenshot](./screenshots/create-deadline.png)
-![Example screenshot2](./screenshots/update-deadline.png)
-![Example screenshot3](./screenshots/check%20attendance.png)
-![Example screenshot3](./screenshots/delete%20deadline.png)
+![create deadline](./screenshots/create-deadline.png)
+![update deadline](./screenshots/update-deadline.png)
+![check attendance](./screenshots/check%20attendance.png)
+![delete deadline](./screenshots/delete%20deadline.png)
 
 ## Setup
 - [Requirements](requirements.txt)
@@ -56,6 +57,7 @@
 - ***year***: The year of the deadline date. By default the minimum year will be the current year.
 - ***hour***: The hour of the deadline date. You must enter value between 0 and 23 where 0 stands for 12:00 AM and 23 stands for 11:00 PM
 - ***minute***: The minute of the deadline date. You must enter a value between 0 and 59.
+- ***timezone***: Timezone that the deadline will be in.
 - ***channel***: This will be the channel that the bot will send reminders to. This does not include updates to deadlines/events.
 -  ***description***: A description is optional. This is where you can put any extra details such as where to meet up or what is going to happen at the event.
 
@@ -63,51 +65,64 @@
 
 ### Update Event
 
-`/update {event_name} {*new_event_name} {*month} {*day} {*year} {*hour} {*minute} {*channel} {*description}`
+`/update {event_name} {timezone} {*new_event_name} {*month} {*day} {*year} {*hour} {*minute} {*channel} {*description}`  - updates selected event
 
 - ***event_name***: Name of the event you will update. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
-- ***new_event_name***: New name for the of event you want to change. This will also change the role name.
+- ***timezone***: Timezone that the updated datetime object will be in. Must be selected if you are updating the deadline.
+- ****new_event_name***: New name for the of event you want to change. This will also change the role name.
+- ****month***: The month of the deadline date. The command will give you the list of all the months to choose from.
+- ****day***: The day of the deadline date. You must enter the correct day for each month. For example, entering 31 for the month of September will not work.
+- ****year***: The year of the deadline date. By default the minimum year will be the current year.
+- ****hour***: The hour of the deadline date. You must enter value between 0 and 23 where 0 stands for 12:00 AM and 23 stands for 11:00 PM
+- ****minute***: The minute of the deadline date. You must enter a value between 0 and 59.
+- ****channel***: This will be the channel that the bot will send reminders to. This does not include updates to deadlines/events.
+-  ****description***: A description is optional. This is where you can put any extra details such as where to meet up or what is going to happen at the event.
 
-![Example deadline](./screenshots/example%20update.png)
+![Example update](./screenshots/example%20update.png)
 
 ### Delete Event
 
-`/delete {event_name}`
+`/delete {event_name}` - deletes selected event
 
 - ***event_name***: Name of the event you will delete. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
 
-![Example deadline](./screenshots/example%20delete.png)
+![Example delete](./screenshots/example%20delete.png)
 
 ### Opt out for reminders
 
-`/opt-in {event_name}`
+`/opt-in {event_name}` - puts user on attendance list so that they recieve reminders.
 
 - ***event_name***: Name of the event you will get reminders for. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
 
-![Example deadline](./screenshots/example%20opt%20in.png)
+![Example opt in](./screenshots/example%20opt%20in.png)
 
 ### Opt out of reminders
 
-`/opt-out {event_name}`
+`/opt-out {event_name}` - takes user off attendance list so that they no longer recieve reminders.
 
 - ***event_name***: Name of the event you want to no longer receive notifications for. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
 
-![Example deadline](./screenshots/example%20opt%20out.png)
+![Example opt out](./screenshots/example%20opt%20out.png)
 
 ### Get attendance
 
-`/get-attendance {event_name}`
+`/get-attendance {event_name}` - returns an embed containing list of member names and the number of people recieving reminders.
 
 - ***event_name***: Name of the event you want to see attendance of. Comes in the form of a role, meaning you must select a role that the bot as created or else an error will be raised.
 
-![Example deadline](./screenshots/example%20get%20attendance.png)
+![Example get attendance](./screenshots/example%20get%20attendance.png)
+
+### Get events
+
+`/get-events` - returns embed containing all event names, their deadlines, and attendance count.
+![Example get events](./screenshots/example%20get%20events.png)
 
 ### Buttons
 - ***Opt in for reminders***: Does the exact same as the opt-in command.
 - ***Opt out of reminders***: Does the exact same as the opt-out command.
 - ***Check attendance***: Shows a list of people who are currently receiving reminders.
 
-![Example deadline](./screenshots/example%20buttons.png)
+![Example buttons](./screenshots/example%20buttons.png)
 
 ## Project Status
 Project is: _in progress_ 
@@ -116,11 +131,14 @@ Project is: _in progress_
 Room for improvement:
 - Add more flexible reminder scheduling
 
+<<<<<<< Updated upstream
 To do:
 - Get list of events
 
+=======
+>>>>>>> Stashed changes
 ## Acknowledgements
-- Thanks you to the [Pycord Discord Server](https://discord.gg/ySu2u8Ff) for helping me through many roadblocks
+- Many thanks to the [Pycord Discord Server](https://discord.gg/ySu2u8Ff) for helping me through many roadblocks
 
 ## Contact
 Created by [@HecticBanzai](https://github.com/HecticBanzai) - feel free to contact me!

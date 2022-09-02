@@ -1,7 +1,15 @@
 import discord
 from discord import option
+<<<<<<< Updated upstream
 from discord.utils import get
 from datetime import datetime, timedelta
+=======
+from discord.utils import utcnow
+
+from datetime import datetime, timedelta
+
+import pytz
+>>>>>>> Stashed changes
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -24,6 +32,7 @@ client = discord.Bot(debug_guilds=[os.getenv("TEST_GUILD"), os.getenv("GUILD")])
 scheduler = AsyncIOScheduler()
 scheduler.start()
 
+<<<<<<< Updated upstream
 event_list = {}
 
 async def schedule_next_reminder(event):
@@ -194,6 +203,8 @@ async def remind(event):
     
     await schedule_next_reminder(event)
 
+=======
+>>>>>>> Stashed changes
 @client.event
 async def on_ready():
     for guild in client.guilds:
@@ -230,11 +241,16 @@ async def on_ready():
             event_date_not_passed = datetime.now() < event_deadline
             delete_time_not_passed = datetime.now() < delete_deadline
 
+<<<<<<< Updated upstream
             if delete_time_not_passed or event_date_not_passed:
                 event_list[event_name] = event(event_name, month, day, year, hour, minute, channel_id, description, job_id, users_opted_in)
             else:
                 channel = client.get_channel(event.channel_id)
                 guild_id = channel.guild.id
+=======
+            event_date_not_passed = utcnow() < event_deadline.astimezone(pytz.utc)
+            delete_date_not_passed = utcnow() < delete_date.astimezone(pytz.utc)
+>>>>>>> Stashed changes
 
                 await database.remove_event_object(guild_id, event_name)
 
@@ -242,7 +258,45 @@ async def on_ready():
         for row in job_rows:
             job_id, job_name, year, month, day, hour, minute = row
 
+<<<<<<< Updated upstream
             job_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
+=======
+                scheduler.add_job(
+                    schedulerhelpers.delete_role_and_event, 
+                    trigger=CronTrigger(
+                        year=delete_date.astimezone(pytz.utc).year,
+                        month=delete_date.astimezone(pytz.utc).month,
+                        day=delete_date.astimezone(pytz.utc).day,
+                        hour=delete_date.astimezone(pytz.utc).hour,
+                        minute=delete_date.astimezone(pytz.utc).minute), 
+                    args=[event_list[event_name]], 
+                    id=job_id+"-delete", 
+                    name=event_name+"-delete")
+
+                if event_date_not_passed:
+                    scheduler.add_job(
+                        created_event.announce_start, 
+                        trigger=CronTrigger(
+                            year=event_deadline.astimezone(pytz.utc).year,
+                            month=event_deadline.astimezone(pytz.utc).month,
+                            day=event_deadline.astimezone(pytz.utc).day,
+                            hour=event_deadline.astimezone(pytz.utc).hour,
+                            minute=event_deadline.astimezone(pytz.utc).minute),  
+                        id=job_id, 
+                        name=event_name)
+
+                    if utcnow() < created_event.remind_date:
+                        scheduler.add_job(
+                            created_event.announce_reminder, 
+                            trigger=CronTrigger(
+                                year=created_event.remind_date.astimezone(pytz.utc).year,
+                                month=created_event.remind_date.astimezone(pytz.utc).month,
+                                day=created_event.remind_date.astimezone(pytz.utc).day,
+                                hour=created_event.remind_date.astimezone(pytz.utc).hour,
+                                minute=created_event.remind_date.astimezone(pytz.utc).minute), 
+                            id=job_id+"-remind",
+                            name=event_name+"-remind")
+>>>>>>> Stashed changes
 
             date_passed = datetime.now() > job_deadline
 
@@ -327,17 +381,32 @@ async def deadline(
 ):
     if day > helpers.days_in_month[month]:
         await ctx.respond("Please enter a viable date!", ephemeral=True)
+        
     else:
         event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
 
+<<<<<<< Updated upstream
         job_not_created = not scheduler.get_job(event_name)
         date_not_passed = datetime.now() < event_deadline
+=======
+        date_passed = utcnow() > event_deadline_aware.astimezone(pytz.utc)
+
+        if job_created_before:
+            await ctx.respond("Could not create deadline! The event name has been taken.", ephemeral=True)
+        
+        elif date_passed:
+            await ctx.respond("Could not create deadline! Maybe the date/time has already passed.", ephemeral=True)
+        
+        else:
+            new_event = event(event_name, event_deadline_aware, channel, description, event_name, [])
+>>>>>>> Stashed changes
 
         if job_not_created and date_not_passed:
             new_event = event(event_name, month, day, year, hour, minute, channel.id, description, event_name, [])
             event_list[event_name] = new_event
             await database.add_event_object(ctx.guild.id, event_name, month, day, year, hour, minute, channel.id, description, event_name, [])
 
+<<<<<<< Updated upstream
             embed = new_event.embed_for_create()
             view = new_event.view_with_buttons()
             
@@ -358,6 +427,11 @@ async def deadline(
                     minute)
 
             await schedule_next_reminder(new_event)
+=======
+            await databasehelpers.add_event_object(ctx.guild.id, new_event)
+            
+            schedulerhelpers.add_event_jobs(scheduler, new_event)
+>>>>>>> Stashed changes
 
             await ctx.guild.create_role(name=event_name)
             await ctx.respond(embed=embed, view=view)
@@ -391,13 +465,37 @@ async def update(
     channel: discord.TextChannel,
     description: str
 ):
+<<<<<<< Updated upstream
     if day > helpers.days_in_month[month]:
         await ctx.respond("Please enter a viable date!", ephemeral=True)
+=======
+    event_list = guild_list[ctx.guild.id]["event list"]
+    scheduler = guild_list[ctx.guild.id]["scheduler"]
+
+    event_doesnt_exist = event_name.name not in event_list
+
+    if event_doesnt_exist:
+        await ctx.respond("Please select an event!", ephemeral=True)
+
+    elif event_list[event_name.name].event_deadline.astimezone(pytz.utc) < utcnow():
+        await ctx.respond("Cannot update this event! The event's deadline has already passed.", ephemeral=True)
+
+>>>>>>> Stashed changes
     else:
         event_deadline = datetime(year, helpers.months_table_to_int[month], day, hour, minute)
 
+<<<<<<< Updated upstream
         event_doesnt_exist = event_name.name not in event_list
         date_already_passed = event_deadline < datetime.now()
+=======
+        event_deadline_naive = datetime(
+            year or selected_event_deadline.year, 
+            helpers.months_table_to_int[month] or selected_event_deadline.month, 
+            day or selected_event_deadline.day, 
+            hour or selected_event_deadline.hour, 
+            minute or selected_event_deadline.minute)
+        event_deadline_aware = pytz.timezone(helpers.tzname_to_localize[timezone]).localize(event_deadline_naive)
+>>>>>>> Stashed changes
 
         if event_doesnt_exist:
             await ctx.respond("Please select an event!", ephemeral=True)
@@ -491,7 +589,21 @@ async def delete(ctx: discord.ApplicationContext, event_name: discord.Role):
 @client.slash_command(name="opt-in", description="Opt out of reminders for an event deadline")
 @option("event_name", description="Select event to get reminders for")
 async def opt_in(ctx: discord.ApplicationContext, event_name: discord.Role):
+<<<<<<< Updated upstream
     member = ctx.user
+=======
+    event_list = guild_list[ctx.guild.id]["event list"]
+
+    event_exists = event_name.name in event_list
+
+    if event_exists:
+        if event_list[event_name.name].event_deadline.astimezone(pytz.utc) < utcnow():
+            await ctx.respond(f"Cannot give you reminders for **{event_list[event_name.name].event_name}**! The event's deadline has already passed.", ephemeral=True)
+        
+        else:
+            event = event_list[event_name.name]
+            member = ctx.user
+>>>>>>> Stashed changes
 
     event = event_list[event_name.name]
 
@@ -509,7 +621,20 @@ async def opt_in(ctx: discord.ApplicationContext, event_name: discord.Role):
 @client.slash_command(name="opt-out", description="Opt out of reminders for an event deadline")
 @option("event_name", description="Select event to get reminders for")
 async def opt_out(ctx: discord.ApplicationContext, event_name: discord.Role):
+<<<<<<< Updated upstream
     member = ctx.user
+=======
+    event_list = guild_list[ctx.guild.id]["event list"]
+
+    event_exists = event_name.name in event_list
+
+    if event_exists:
+        if event_list[event_name.name].event_deadline.astimezone(pytz.utc) < utcnow():
+            await ctx.respond(f"Cannot opt you out of reminders for **{event_list[event_name.name].event_name}**! The event's deadline has already passed.", ephemeral=True)
+        
+        else:
+            member = ctx.user
+>>>>>>> Stashed changes
 
     event = event_list[event_name.name]
 
@@ -554,6 +679,31 @@ async def get_attendance(ctx: discord.ApplicationCommand, event_name: discord.Ro
 
 @client.slash_command(name="get-events", description="See a list of all created events")
 async def get_events(ctx: discord.ApplicationCommand):
+<<<<<<< Updated upstream
     pass
+=======
+    current_guild = ctx.guild
+
+    event_list = guild_list[current_guild.id]["event list"]
+
+    embed = discord.Embed(title=f"All events in {current_guild.name}", color=0xad6fa)
+
+    for event_name in event_list:
+        event = event_list[event_name]
+
+        deadline = event.event_deadline
+
+        if deadline.astimezone(pytz.utc) > utcnow():
+
+            embed.add_field(
+                name=f"{event.event_name}", 
+                value=f"{deadline.strftime('%m/%d/%Y %H:%M %Z')}  |  Number of people: {len(event.users_opted_in)}", 
+            inline=False)
+
+    if len(embed.fields) == 0:
+        embed.add_field(name="No events for this server!", value="¯\_(ツ)_/¯", inline=False)
+
+    await ctx.respond(embed=embed, ephemeral=True)
+>>>>>>> Stashed changes
 
 client.run(os.getenv("TOKEN"))
