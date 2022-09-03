@@ -11,7 +11,6 @@
 * [Room for Improvement](#room-for-improvement)
 * [Acknowledgements](#acknowledgements)
 * [Contact](#contact)
-<!-- * [License](#license) -->
 
 ## General Information
 - The Deadline Discord Bot is designed to remind people of upcoming events via roles and pings.
@@ -49,7 +48,7 @@
 
 ### Create Deadline
 
-`/deadline {event_name} {month} {day} {year} {hour} {minute} {channel} {*description}`
+`/deadline {event_name} {month} {day} {year} {hour} {minute} {channel} {timezone} {*description}` - Creates new event.
 
 - ***event_name***: Name of the event you will make the deadline for. It will also be the name of the role that the command will create.
 - ***month***: The month of the deadline date. The command will give you the list of all the months to choose from.
@@ -131,12 +130,15 @@ Project is: _in progress_
 Room for improvement:
 - Add more flexible reminder scheduling
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 To do:
 - Get list of events
 
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> redesign
 ## Acknowledgements
 - Many thanks to the [Pycord Discord Server](https://discord.gg/ySu2u8Ff) for helping me through many roadblocks
 
