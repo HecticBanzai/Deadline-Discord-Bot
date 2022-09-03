@@ -72,7 +72,7 @@ class event:
     self.users_opted_in = users_opted_in or []
   
   def __str__(self):
-    return f"Event: {self.event_name}, {self.event_deadline.strftime('%Y/%m/%d %H:%M %Z')}"
+    return f"Event: {self.event_name}, {self.event_deadline.strftime('%m/%d/%Y %H:%M %Z')}"
 
   async def announce_create(self):
       embed = discord.Embed(title="Event Created!", color=0xad6fa)

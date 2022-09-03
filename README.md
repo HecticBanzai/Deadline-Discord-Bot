@@ -14,7 +14,7 @@
 
 ## General Information
 - The Deadline Discord Bot is designed to remind people of upcoming events via roles and pings.
-- Because of our lives, sometimes we get sidetracked from the events we plan. With this Discord bot, you will no longer have to worry about remembering any deadlines/events coming up.
+- Because of our busy lives, sometimes we get sidetracked from the events we plan. With this Discord bot, you will no longer have to worry about remembering any deadlines/events coming up.
 - After taking learning basic Python in my high school Artificial Intelligence class, I wanted to expand my knowledge and experience programming for real world applications with tools such as Heroku, Github, and databases. 
 
 ## Technologies Used
@@ -130,15 +130,6 @@ Project is: _in progress_
 Room for improvement:
 - Add more flexible reminder scheduling
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-To do:
-- Get list of events
-
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> redesign
 ## Acknowledgements
 - Many thanks to the [Pycord Discord Server](https://discord.gg/ySu2u8Ff) for helping me through many roadblocks
 
